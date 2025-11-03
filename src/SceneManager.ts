@@ -7,6 +7,7 @@ import { BeyerErosion } from "./erosion/BeyerErosion";
 import { GuiManager } from "./gui/GuiManager";
 import { LandscapeControls } from "./gui/LandscapeControls";
 import { ErosionControls } from "./gui/ErosionControls";
+import { Simulator } from "./erosion/Simulator";
 import Stats from "stats.js";
 
 /**
@@ -24,6 +25,7 @@ export class SceneManager {
   private animationId: number | null = null;
 
   private readonly landscape: Landscape;
+  private readonly simulator: Simulator;
   private readonly guiManager: GuiManager;
 
   // Camera
@@ -113,7 +115,7 @@ export class SceneManager {
       rng,
     );
 
-    // Create erosion simulator
+    // Create erosion model
     const erosion = new BeyerErosion({
       iterations: 50000,
       inertia: 0.05,
@@ -141,8 +143,10 @@ export class SceneManager {
       SceneManager.TERRAIN_SIZE,
       SceneManager.TERRAIN_RESOLUTION,
       generator,
-      erosion,
     );
+
+    // Create simulator to manage erosion process
+    this.simulator = new Simulator(this.landscape, erosion);
 
     this.scene.background = new THREE.Color(0xa1a2a6);
     this.scene.add(this.landscape.getMesh());
@@ -153,7 +157,7 @@ export class SceneManager {
     // Setup GUI
     this.guiManager = new GuiManager();
     this.guiManager.register("landscape", new LandscapeControls(this.landscape));
-    this.guiManager.register("erosion", new ErosionControls(this.landscape));
+    this.guiManager.register("erosion", new ErosionControls(this.simulator, erosion));
   }
 
   private setupLighting(): void {
@@ -207,6 +211,9 @@ export class SceneManager {
 
   private animate = (): void => {
     this.stats?.begin();
+
+    // Update erosion simulation
+    this.simulator.update();
 
     this.renderer.render(this.scene, this.camera);
 

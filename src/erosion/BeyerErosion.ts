@@ -36,6 +36,11 @@ export class BeyerErosion {
 
   private static readonly EPSILON = 1e-3;
 
+  // Change map for incremental erosion
+  private changeMap: Float32Array | null = null;
+  private changeMapWidth: number = 0;
+  private changeMapHeight: number = 0;
+
   // Default parameters from Beyer's paper
   static readonly DEFAULT_PARAMS: ErosionParams = {
     iterations: 300000,
@@ -61,6 +66,59 @@ export class BeyerErosion {
 
   constructor(params: Partial<ErosionParams> = {}) {
     this.params = { ...BeyerErosion.DEFAULT_PARAMS, ...params };
+  }
+
+  /**
+   * Initialize change map for incremental erosion
+   */
+  initializeChangeMap(width: number, height: number): void {
+    this.changeMapWidth = width;
+    this.changeMapHeight = height;
+    this.changeMap = new Float32Array(width * height);
+  }
+
+  /**
+   * Simulate a single droplet for incremental erosion
+   * @param heights - Float32Array representing the heightmap
+   * @param width - Width of the heightmap
+   * @param height - Height of the heightmap
+   */
+  simulateSingleDroplet(heights: Float32Array, width: number, height: number): void {
+    if (!this.changeMap || this.changeMapWidth !== width || this.changeMapHeight !== height) {
+      this.initializeChangeMap(width, height);
+    }
+    this.simulateDroplet(heights, this.changeMap!, width, height);
+  }
+
+  /**
+   * Apply accumulated changes from change map to heightmap
+   * @param heights - Float32Array representing the heightmap
+   * @param width - Width of the heightmap
+   * @param height - Height of the heightmap
+   */
+  applyChanges(heights: Float32Array, width: number, height: number): void {
+    if (!this.changeMap) return;
+
+    if (this.params.enableBlurring) {
+      this.applyChangeMapWithBlur(heights, this.changeMap, width, height);
+    } else {
+      // Apply changes directly
+      for (let i = 0; i < heights.length; i++) {
+        heights[i] += this.changeMap[i];
+      }
+    }
+
+    // Reset change map
+    this.changeMap.fill(0);
+  }
+
+  /**
+   * Reset the change map
+   */
+  resetChangeMap(): void {
+    if (this.changeMap) {
+      this.changeMap.fill(0);
+    }
   }
 
   /**

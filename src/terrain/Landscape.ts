@@ -2,7 +2,6 @@
 
 import * as THREE from "three";
 import LandscapeGenerator from "./LandscapeGenerator.ts";
-import { BeyerErosion } from "../erosion/BeyerErosion.ts";
 import { createPlaneMesh } from "./Plane.ts";
 /**
  * Manages landscape mesh creation, shader material, and height generation.
@@ -14,7 +13,6 @@ export class Landscape {
   private readonly mesh: THREE.Mesh;
   private readonly material: THREE.MeshStandardMaterial;
   private readonly generator: LandscapeGenerator;
-  private readonly erosion: BeyerErosion;
   private readonly segments: number;
   private readonly size: number;
 
@@ -22,12 +20,10 @@ export class Landscape {
     size: number = Landscape.DEFAULT_SIZE,
     resolution: number = Landscape.DEFAULT_RESOLUTION,
     generator: LandscapeGenerator,
-    erosion: BeyerErosion,
   ) {
     this.size = size;
     this.segments = resolution;
     this.generator = generator;
-    this.erosion = erosion;
 
     // Create initial terrain
     this.material = new THREE.MeshStandardMaterial({});
@@ -37,13 +33,6 @@ export class Landscape {
 
   private generateHeights(): void {
     const heightMap = this.generator.generateHeightMap();
-
-    // Apply erosion
-    this.erosion.erode(
-      heightMap,
-      this.segments + 1,
-      this.segments + 1,
-    );
 
     this.applyHeightMap(heightMap);
   }
@@ -82,10 +71,26 @@ export class Landscape {
   }
 
   /**
-   * Gets the erosion simulator for accessing erosion parameters
+   * Gets the current heightmap as a Float32Array
    */
-  getErosion(): BeyerErosion {
-    return this.erosion;
+  getHeightMap(): Float32Array {
+    const vertices = this.mesh.geometry.attributes.position;
+    const heightMap = new Float32Array(vertices.count);
+
+    for (let i = 0; i < vertices.count; i++) {
+      heightMap[i] = vertices.getZ(i);
+    }
+
+    return heightMap;
+  }
+
+  /**
+   * Updates the mesh with the current geometry
+   */
+  updateMesh(): void {
+    const vertices = this.mesh.geometry.attributes.position;
+    vertices.needsUpdate = true;
+    this.mesh.geometry.computeVertexNormals();
   }
 
   /**

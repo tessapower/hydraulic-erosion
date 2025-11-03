@@ -24,3 +24,47 @@ html, body {
     height: 100%;
     display: block; /* remove inline gaps */
 }
+
+/* Styling for GUI buttons */
+.lil-gui button {
+    transition: all 0.2s ease;
+}
+
+.lil-gui button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.lil-gui button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.lil-gui button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Start button styles */
+.erosion-start-btn:not(:disabled) {
+    background-color: #4CAF50 !important;
+    color: white !important;
+    opacity: 1 !important;
+}
+
+.erosion-start-btn:disabled {
+    background-color: transparent !important;
+    opacity: 0.5 !important;
+}
+
+/* Stop button styles */
+.erosion-stop-btn:not(:disabled) {
+    background-color: #f44336 !important;
+    color: white !important;
+    opacity: 1 !important;
+}
+
+.erosion-stop-btn:disabled {
+    background-color: transparent !important;
+    opacity: 0.5 !important;
+}
+

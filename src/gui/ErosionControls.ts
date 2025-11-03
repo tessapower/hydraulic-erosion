@@ -1,258 +1,263 @@
 // ErosionControls.ts: GUI controls for hydraulic erosion parameters
 
 import GUI from "lil-gui";
-import { Landscape } from "../terrain/Landscape";
-import type { IGuiModule } from "./GuiManager";
+import { Simulator } from '../erosion/Simulator';
+import { BeyerErosion } from '../erosion/BeyerErosion';
+import type { IGuiModule } from './GuiManager';
 
 /**
  * Registers erosion-related controls with the GUI manager for interactive
  * parameter adjustment.
  */
 export class ErosionControls implements IGuiModule {
-  private landscape: Landscape;
+  private simulator: Simulator;
+  private erosion: BeyerErosion;
+  private startButton: any;
+  private stopButton: any;
 
   private readonly controls = {
-    iterations: { min: 1000, max: 500000, step: 1000 },
-    inertia: { min: 0, max: 1, step: 0.01 },
-    capacity: { min: 1, max: 20, step: 0.5 },
-    minSlope: { min: 0.001, max: 0.1, step: 0.001 },
-    erosionSpeed: { min: 0, max: 1, step: 0.05 },
-    depositionSpeed: { min: 0, max: 1, step: 0.05 },
-    evaporationSpeed: { min: 0, max: 0.5, step: 0.01 },
-    gravity: { min: 1, max: 20, step: 0.5 },
-    maxPath: { min: 8, max: 128, step: 4 },
-    erosionRadius: { min: 1, max: 10, step: 1 },
-    depositionRadius: { min: 1, max: 20, step: 1 },
-    minLifetime: { min: 0.1, max: 1, step: 0.1 },
-    maxLifetime: { min: 1, max: 3, step: 0.1 },
-    minWater: { min: 0.1, max: 1, step: 0.1 },
-    maxWater: { min: 1, max: 2, step: 0.1 },
-    blurRadius: { min: 0, max: 5, step: 1 },
-    blendFactor: { min: 0, max: 1, step: 0.05 },
+    iterationsPerFrame: {min: 1, max: 100, step: 1},
+    iterations: {min: 1000, max: 1000000, step: 1000},
+    maxPath: {min: 16, max: 128, step: 1},
+    inertia: {min: 0, max: 1, step: 0.01},
+    capacity: {min: 1, max: 20, step: 0.5},
+    minSlope: {min: 0.001, max: 0.02, step: 0.001},
+    erosionSpeed: {min: 0, max: 1, step: 0.01},
+    depositionSpeed: {min: 0, max: 1, step: 0.01},
+    evaporationSpeed: {min: 0, max: 0.1, step: 0.01},
+    gravity: {min: 1, max: 20, step: 0.5},
+    erosionRadius: {min: 1, max: 10, step: 0.5},
+    depositionRadius: {min: 1, max: 10, step: 0.5},
   } as const;
 
-  constructor(landscape: Landscape) {
-    this.landscape = landscape;
+  constructor(simulator: Simulator, erosion: BeyerErosion) {
+    this.simulator = simulator;
+    this.erosion = erosion;
   }
 
   setupControls(gui: GUI): void {
-    const erosion = this.landscape.getErosion();
-    const params = erosion.params;
+    const erosionFolder = gui.addFolder('Erosion Simulation');
 
-    const erosionFolder = gui.addFolder("Hydraulic Erosion");
+    // Status display
+    const statusObj = {
+      status: '⚪ Ready',
+      progress: '0 / 0 (0%)',
+    };
+    erosionFolder.add(statusObj, 'progress').name('Progress').listen().disable();
 
-    // Core parameters folder
-    const coreFolder = erosionFolder.addFolder("Core Parameters");
+    // Update status in animation loop
+    const updateStatus = () => {
+      const isRunning = this.simulator.getIsRunning();
+      const isComplete = this.simulator.isComplete();
 
-    coreFolder
+      if (isComplete) {
+        statusObj.status = '✅ Complete';
+      } else if (isRunning) {
+        statusObj.status = '🟢 Running';
+      } else {
+        statusObj.status = '⚪ Ready';
+      }
+
+      const current = this.simulator.getTotalIterations();
+      const max = this.simulator.getMaxIterations();
+      const percentage = this.simulator.getProgress().toFixed(1);
+      statusObj.progress = `${current} / ${max} (${percentage}%)`;
+
+      requestAnimationFrame(updateStatus);
+    };
+    updateStatus();
+
+    // Animation controls
+    const animationControls = {
+      start: () => {
+        this.simulator.start();
+        this.updateButtonStates();
+      },
+      stop: () => {
+        this.simulator.stop();
+        this.updateButtonStates();
+      },
+      reset: () => {
+        this.simulator.reset();
+        this.updateButtonStates();
+      },
+    };
+
+    this.startButton = erosionFolder.add(animationControls, 'start').name('▶ Start Erosion');
+    this.stopButton = erosionFolder.add(animationControls, 'stop').name('⏸ Stop Erosion');
+    erosionFolder.add(animationControls, 'reset').name('🔄 Reset');
+
+    // Add CSS classes to buttons
+    if (this.startButton?.$button) {
+      this.startButton.$button.classList.add('erosion-start-btn');
+    }
+    if (this.stopButton?.$button) {
+      this.stopButton.$button.classList.add('erosion-stop-btn');
+    }
+
+    // Set initial button states
+    this.updateButtonStates();
+
+    // Speed control
+    const speedControl = {
+      speed: 5, // Default iterations per frame
+    };
+
+    erosionFolder
       .add(
-        params,
-        "iterations",
+        speedControl,
+        'speed',
+        this.controls.iterationsPerFrame.min,
+        this.controls.iterationsPerFrame.max,
+        this.controls.iterationsPerFrame.step
+      )
+      .name('Speed')
+      .onChange((value: number) => {
+        this.simulator.setIterationsPerFrame(value);
+      });
+
+    // Erosion parameters
+    const params = erosionFolder.addFolder('Parameters');
+
+    params
+      .add(
+        this.erosion.params,
+        'iterations',
         this.controls.iterations.min,
         this.controls.iterations.max,
-        this.controls.iterations.step,
+        this.controls.iterations.step
       )
-      .name("Iterations");
+      .name('Max Droplets')
+      .onChange(() => {
+        // If erosion is complete, reset the completion state by updating button states
+        this.updateButtonStates();
+      });
 
-    coreFolder
+    params
       .add(
-        params,
-        "inertia",
-        this.controls.inertia.min,
-        this.controls.inertia.max,
-        this.controls.inertia.step,
-      )
-      .name("Inertia");
-
-    coreFolder
-      .add(
-        params,
-        "capacity",
-        this.controls.capacity.min,
-        this.controls.capacity.max,
-        this.controls.capacity.step,
-      )
-      .name("Capacity");
-
-    coreFolder
-      .add(
-        params,
-        "minSlope",
-        this.controls.minSlope.min,
-        this.controls.minSlope.max,
-        this.controls.minSlope.step,
-      )
-      .name("Min Slope");
-
-    coreFolder
-      .add(
-        params,
-        "gravity",
-        this.controls.gravity.min,
-        this.controls.gravity.max,
-        this.controls.gravity.step,
-      )
-      .name("Gravity");
-
-    coreFolder.onFinishChange(() => {
-      this.landscape.regenerate();
-    });
-
-    // Speed parameters folder
-    const speedFolder = erosionFolder.addFolder("Speed Parameters");
-
-    speedFolder
-      .add(
-        params,
-        "erosionSpeed",
-        this.controls.erosionSpeed.min,
-        this.controls.erosionSpeed.max,
-        this.controls.erosionSpeed.step,
-      )
-      .name("Erosion Speed");
-
-    speedFolder
-      .add(
-        params,
-        "depositionSpeed",
-        this.controls.depositionSpeed.min,
-        this.controls.depositionSpeed.max,
-        this.controls.depositionSpeed.step,
-      )
-      .name("Deposition Speed");
-
-    speedFolder
-      .add(
-        params,
-        "evaporationSpeed",
-        this.controls.evaporationSpeed.min,
-        this.controls.evaporationSpeed.max,
-        this.controls.evaporationSpeed.step,
-      )
-      .name("Evaporation Speed");
-
-    speedFolder.onFinishChange(() => {
-      this.landscape.regenerate();
-    });
-
-    // Droplet parameters folder
-    const dropletFolder = erosionFolder.addFolder("Droplet Parameters");
-
-    dropletFolder
-      .add(
-        params,
-        "maxPath",
+        this.erosion.params,
+        'maxPath',
         this.controls.maxPath.min,
         this.controls.maxPath.max,
-        this.controls.maxPath.step,
+        this.controls.maxPath.step
       )
-      .name("Max Path Length");
+      .name('Max Path Length');
 
-    dropletFolder
+    params
       .add(
-        params,
-        "minLifetime",
-        this.controls.minLifetime.min,
-        this.controls.minLifetime.max,
-        this.controls.minLifetime.step,
+        this.erosion.params,
+        'inertia',
+        this.controls.inertia.min,
+        this.controls.inertia.max,
+        this.controls.inertia.step
       )
-      .name("Min Lifetime");
+      .name('Inertia');
 
-    dropletFolder
+    params
       .add(
-        params,
-        "maxLifetime",
-        this.controls.maxLifetime.min,
-        this.controls.maxLifetime.max,
-        this.controls.maxLifetime.step,
+        this.erosion.params,
+        'capacity',
+        this.controls.capacity.min,
+        this.controls.capacity.max,
+        this.controls.capacity.step
       )
-      .name("Max Lifetime");
+      .name('Sediment Capacity');
 
-    dropletFolder
+    params
       .add(
-        params,
-        "minWater",
-        this.controls.minWater.min,
-        this.controls.minWater.max,
-        this.controls.minWater.step,
+        this.erosion.params,
+        'minSlope',
+        this.controls.minSlope.min,
+        this.controls.minSlope.max,
+        this.controls.minSlope.step
       )
-      .name("Min Water");
+      .name('Min Slope');
 
-    dropletFolder
+    params
       .add(
-        params,
-        "maxWater",
-        this.controls.maxWater.min,
-        this.controls.maxWater.max,
-        this.controls.maxWater.step,
+        this.erosion.params,
+        'erosionSpeed',
+        this.controls.erosionSpeed.min,
+        this.controls.erosionSpeed.max,
+        this.controls.erosionSpeed.step
       )
-      .name("Max Water");
+      .name('Erosion Speed');
 
-    dropletFolder.onFinishChange(() => {
-      this.landscape.regenerate();
-    });
-
-    // Radius parameters folder
-    const radiusFolder = erosionFolder.addFolder("Radius Parameters");
-
-    radiusFolder
+    params
       .add(
-        params,
-        "erosionRadius",
+        this.erosion.params,
+        'depositionSpeed',
+        this.controls.depositionSpeed.min,
+        this.controls.depositionSpeed.max,
+        this.controls.depositionSpeed.step
+      )
+      .name('Deposition Speed');
+
+    params
+      .add(
+        this.erosion.params,
+        'evaporationSpeed',
+        this.controls.evaporationSpeed.min,
+        this.controls.evaporationSpeed.max,
+        this.controls.evaporationSpeed.step
+      )
+      .name('Evaporation Speed');
+
+    params
+      .add(
+        this.erosion.params,
+        'gravity',
+        this.controls.gravity.min,
+        this.controls.gravity.max,
+        this.controls.gravity.step
+      )
+      .name('Gravity');
+
+    params
+      .add(
+        this.erosion.params,
+        'erosionRadius',
         this.controls.erosionRadius.min,
         this.controls.erosionRadius.max,
-        this.controls.erosionRadius.step,
+        this.controls.erosionRadius.step
       )
-      .name("Erosion Radius");
+      .name('Erosion Radius');
 
-    radiusFolder
+    params
       .add(
-        params,
-        "depositionRadius",
+        this.erosion.params,
+        'depositionRadius',
         this.controls.depositionRadius.min,
         this.controls.depositionRadius.max,
-        this.controls.depositionRadius.step,
+        this.controls.depositionRadius.step
       )
-      .name("Deposition Radius");
+      .name('Deposition Radius');
+  }
 
-    radiusFolder.onFinishChange(() => {
-      this.landscape.regenerate();
-    });
+  private updateButtonStates(): void {
+    const isRunning = this.simulator.getIsRunning();
+    const isComplete = this.simulator.isComplete();
 
-    // Blurring parameters folder
-    const blurFolder = erosionFolder.addFolder("Blurring");
+    // Update Start button - CSS handles styling via :disabled pseudo-class
+    if (this.startButton) {
+      if (isRunning || isComplete) {
+        this.startButton.disable();
+      } else {
+        this.startButton.enable();
+      }
+    }
 
-    blurFolder.add(params, "enableBlurring").name("Enable Blurring");
-
-    blurFolder
-      .add(
-        params,
-        "blurRadius",
-        this.controls.blurRadius.min,
-        this.controls.blurRadius.max,
-        this.controls.blurRadius.step,
-      )
-      .name("Blur Radius");
-
-    blurFolder
-      .add(
-        params,
-        "blendFactor",
-        this.controls.blendFactor.min,
-        this.controls.blendFactor.max,
-        this.controls.blendFactor.step,
-      )
-      .name("Blend Factor");
-
-    blurFolder.onFinishChange(() => {
-      this.landscape.regenerate();
-    });
-
-    erosionFolder.open();
+    // Update Stop button - CSS handles styling via :disabled pseudo-class
+    if (this.stopButton) {
+      if (isRunning) {
+        this.stopButton.enable();
+      } else {
+        this.stopButton.disable();
+      }
+    }
   }
 
   getModuleName(): string {
-    return "Erosion";
+    return 'Erosion';
   }
 }
-
