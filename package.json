@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "lil-gui": "^0.21.0",
     "simplex-noise": "^4.0.3",
     "three": "^0.180.0"
   },
