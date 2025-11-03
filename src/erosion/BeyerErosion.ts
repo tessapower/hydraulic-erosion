@@ -32,7 +32,7 @@ export interface ErosionParams {
 }
 
 export class BeyerErosion {
-  private readonly params: ErosionParams;
+  public readonly params: ErosionParams;
 
   private static readonly EPSILON = 1e-3;
 

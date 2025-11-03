@@ -2,7 +2,7 @@
 
 import * as THREE from "three";
 import LandscapeGenerator from "./LandscapeGenerator.ts";
-import type { RandomFn } from "../utils/Random.ts";
+import { BeyerErosion } from "../erosion/BeyerErosion.ts";
 import { createPlaneMesh } from "./Plane.ts";
 /**
  * Manages landscape mesh creation, shader material, and height generation.
@@ -14,21 +14,20 @@ export class Landscape {
   private readonly mesh: THREE.Mesh;
   private readonly material: THREE.MeshStandardMaterial;
   private readonly generator: LandscapeGenerator;
+  private readonly erosion: BeyerErosion;
   private readonly segments: number;
   private readonly size: number;
 
   constructor(
     size: number = Landscape.DEFAULT_SIZE,
     resolution: number = Landscape.DEFAULT_RESOLUTION,
-    rng: RandomFn,
+    generator: LandscapeGenerator,
+    erosion: BeyerErosion,
   ) {
     this.size = size;
     this.segments = resolution;
-    this.generator = new LandscapeGenerator(
-      this.segments + 1,
-      this.segments + 1,
-      rng,
-    );
+    this.generator = generator;
+    this.erosion = erosion;
 
     // Create initial terrain
     this.material = new THREE.MeshStandardMaterial({});
@@ -38,6 +37,13 @@ export class Landscape {
 
   private generateHeights(): void {
     const heightMap = this.generator.generateHeightMap();
+
+    // Apply erosion
+    this.erosion.erode(
+      heightMap,
+      this.segments + 1,
+      this.segments + 1,
+    );
 
     this.applyHeightMap(heightMap);
   }
@@ -73,6 +79,13 @@ export class Landscape {
    */
   getGenerator(): LandscapeGenerator {
     return this.generator;
+  }
+
+  /**
+   * Gets the erosion simulator for accessing erosion parameters
+   */
+  getErosion(): BeyerErosion {
+    return this.erosion;
   }
 
   /**

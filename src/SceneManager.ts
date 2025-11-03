@@ -2,6 +2,11 @@
 
 import * as THREE from "three";
 import { Landscape } from "./terrain/Landscape";
+import LandscapeGenerator from "./terrain/LandscapeGenerator";
+import { BeyerErosion } from "./erosion/BeyerErosion";
+import { GuiManager } from "./gui/GuiManager";
+import { LandscapeControls } from "./gui/LandscapeControls";
+import { ErosionControls } from "./gui/ErosionControls";
 import Stats from "stats.js";
 
 /**
@@ -19,6 +24,7 @@ export class SceneManager {
   private animationId: number | null = null;
 
   private readonly landscape: Landscape;
+  private readonly guiManager: GuiManager;
 
   // Camera
   private readonly camera: THREE.Camera;
@@ -99,11 +105,43 @@ export class SceneManager {
     // reproducible terrain features
     THREE.MathUtils.seededRandom(SceneManager.RANDOM_SEED);
     const rng = () => THREE.MathUtils.seededRandom();
-    // Create landscape
+
+    // Create landscape generator
+    const generator = new LandscapeGenerator(
+      SceneManager.TERRAIN_RESOLUTION + 1,
+      SceneManager.TERRAIN_RESOLUTION + 1,
+      rng,
+    );
+
+    // Create erosion simulator
+    const erosion = new BeyerErosion({
+      iterations: 50000,
+      inertia: 0.05,
+      capacity: 4,
+      minSlope: 0.01,
+      erosionSpeed: 0.5,
+      depositionSpeed: 0.15,
+      evaporationSpeed: 0.2,
+      gravity: 8,
+      maxPath: 32,
+      erosionRadius: 4,
+      depositionRadius: 12,
+      minLifetime: 0.7,
+      maxLifetime: 1.0,
+      minWater: 0.7,
+      maxWater: 1.2,
+      enableBlurring: true,
+      blurRadius: 1,
+      blendFactor: 0.5,
+      randomFn: rng,
+    });
+
+    // Create landscape with injected dependencies
     this.landscape = new Landscape(
       SceneManager.TERRAIN_SIZE,
       SceneManager.TERRAIN_RESOLUTION,
-      rng,
+      generator,
+      erosion,
     );
 
     this.scene.background = new THREE.Color(0xa1a2a6);
@@ -111,6 +149,11 @@ export class SceneManager {
 
     // Setup lighting
     this.setupLighting();
+
+    // Setup GUI
+    this.guiManager = new GuiManager();
+    this.guiManager.register("landscape", new LandscapeControls(this.landscape));
+    this.guiManager.register("erosion", new ErosionControls(this.landscape));
   }
 
   private setupLighting(): void {
@@ -190,6 +233,7 @@ export class SceneManager {
 
     // Dispose scene objects
     this.landscape.dispose();
+    this.guiManager.dispose();
     this.renderer.dispose();
   }
 }
