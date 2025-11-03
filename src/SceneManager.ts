@@ -1,16 +1,23 @@
 // SceneManager.ts: Three.js scene setup and orchestration
 
 import * as THREE from "three";
+import { Landscape } from "./terrain/Landscape";
 
 /**
- * Orchestrates the Three.js scene, including lighting and camera.
- * Handles initialization, animation loop, resizing, and cleanup.
+ * Orchestrates the Three.js scene, including terrain, lighting, camera,
+ * and GUI. Handles initialization, animation loop, resizing, and cleanup.
  */
 export class SceneManager {
+  private static readonly TERRAIN_SIZE = 512;
+  private static readonly TERRAIN_RESOLUTION = 512;
+  private static readonly RANDOM_SEED = 42;
+
   private readonly canvas: HTMLCanvasElement;
   private readonly scene: THREE.Scene;
   private renderer: THREE.WebGLRenderer;
   private animationId: number | null = null;
+
+  private readonly landscape: Landscape;
 
   // Camera
   private readonly camera: THREE.Camera;
@@ -73,7 +80,20 @@ export class SceneManager {
     // Handle resize
     window.addEventListener("resize", this.handleResize);
 
+
+    // Seed random number generator to pass to landscape for generating
+    // reproducible terrain features
+    THREE.MathUtils.seededRandom(SceneManager.RANDOM_SEED);
+    const rng = () => THREE.MathUtils.seededRandom();
+    // Create landscape
+    this.landscape = new Landscape(
+      SceneManager.TERRAIN_SIZE,
+      SceneManager.TERRAIN_RESOLUTION,
+      rng,
+    );
+
     this.scene.background = new THREE.Color(0xa1a2a6);
+    this.scene.add(this.landscape.getMesh());
 
     // Setup lighting
     this.setupLighting();
@@ -150,6 +170,7 @@ export class SceneManager {
     window.removeEventListener("resize", this.handleResize);
 
     // Dispose scene objects
+    this.landscape.dispose();
     this.renderer.dispose();
   }
 }
