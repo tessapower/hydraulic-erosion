@@ -261,40 +261,26 @@ export class BeyerErosion {
         droplet.water *
         this.params.capacity;
 
-      // If droplet is going uphill or sediment exceeds capacity,
-      // deposit portion of sediment at droplet's original position
-      if (heightDiff > 0 || droplet.sediment > capacity) {
-        // Calculate amount of sediment to deposit
-        let amountToDeposit =
-          heightDiff > 0
-            ? Math.min(droplet.sediment, heightDiff)
-            : (droplet.sediment - capacity) * this.params.depositionSpeed;
-        // Scale to droplet size
+      // Calculate sediment capacity difference
+      const sedimentDiff = capacity - droplet.sediment;
+
+      // Deposit/erode based on whether we can carry more or need to deposit
+      if (sedimentDiff < 0) {
+        // Carrying too much - deposit
+        let amountToDeposit = -sedimentDiff * this.params.depositionSpeed;
         amountToDeposit *= droplet.water / initialWater;
         droplet.sediment -= amountToDeposit;
 
-        this.depositSediment(
-          changeMap,
-          origPosition,
-          width,
-          height,
-          amountToDeposit,
-        );
+        this.depositSediment(changeMap, origPosition, width, height, amountToDeposit);
       } else {
-        // Going downhill, erode terrain
+        // Can carry more - erode
         const amountToErode = Math.min(
-          (capacity - droplet.sediment) * this.params.erosionSpeed,
-          -heightDiff,
+          sedimentDiff * this.params.erosionSpeed,
+          Math.max(0, -heightDiff)  // Can't erode when going uphill
         );
         droplet.sediment += amountToErode;
 
-        this.erodeTerrain(
-          changeMap,
-          origPosition,
-          width,
-          height,
-          amountToErode,
-        );
+        this.erodeTerrain(changeMap, origPosition, width, height, amountToErode);
       }
 
       // Update droplet velocity and evaporate water

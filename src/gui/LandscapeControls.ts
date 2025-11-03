@@ -12,7 +12,7 @@ export class LandscapeControls implements IGuiModule {
   private landscape: Landscape;
 
   private readonly controls = {
-    terrainFrequency: { min: 0.001, max: 0.1, step: 0.001 },
+    terrainFrequency: { min: 0, max: 0.015, step: 0.001 },
     terrainAmplitude: { min: 10, max: 200, step: 5 },
     baseHeight: { min: -50, max: 50, step: 5 },
   } as const;

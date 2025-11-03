@@ -16,18 +16,18 @@ export class ErosionControls implements IGuiModule {
   private stopButton: any;
 
   private readonly controls = {
-    iterationsPerFrame: {min: 1, max: 100, step: 1},
+    iterationsPerFrame: {min: 1, max: 500, step: 1},
     iterations: {min: 1000, max: 1000000, step: 1000},
     maxPath: {min: 16, max: 128, step: 1},
     inertia: {min: 0, max: 1, step: 0.01},
-    capacity: {min: 1, max: 20, step: 0.5},
+    capacity: {min: 1, max: 32, step: 1},
     minSlope: {min: 0.001, max: 0.02, step: 0.001},
     erosionSpeed: {min: 0, max: 1, step: 0.01},
     depositionSpeed: {min: 0, max: 1, step: 0.01},
     evaporationSpeed: {min: 0, max: 0.1, step: 0.01},
-    gravity: {min: 1, max: 20, step: 0.5},
-    erosionRadius: {min: 1, max: 10, step: 0.5},
-    depositionRadius: {min: 1, max: 10, step: 0.5},
+    gravity: {min: 1, max: 32, step: 1},
+    erosionRadius: {min: 1, max: 16, step: 1},
+    depositionRadius: {min: 1, max: 16, step: 1},
   } as const;
 
   constructor(simulator: Simulator, erosion: BeyerErosion) {
@@ -100,7 +100,7 @@ export class ErosionControls implements IGuiModule {
 
     // Speed control
     const speedControl = {
-      speed: 5, // Default iterations per frame
+      speed: 100, // Default iterations per frame
     };
 
     erosionFolder

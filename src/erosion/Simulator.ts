@@ -6,7 +6,7 @@ export class Simulator {
   private landscape: Landscape;
   private erosion: BeyerErosion;
   private isRunning: boolean = false;
-  private iterationsPerFrame: number = 5;
+  private iterationsPerFrame: number = 100;
   private totalIterations: number = 0;
 
   constructor(landscape: Landscape, erosion: BeyerErosion) {
