@@ -2,6 +2,7 @@
 
 import * as THREE from "three";
 import { Landscape } from "./terrain/Landscape";
+import Stats from "stats.js";
 
 /**
  * Orchestrates the Three.js scene, including terrain, lighting, camera,
@@ -21,6 +22,9 @@ export class SceneManager {
 
   // Camera
   private readonly camera: THREE.Camera;
+
+  // Performance monitoring (only in debug mode)
+  private stats?: Stats;
 
   // Lighting
   private readonly lightingConfig = {
@@ -53,6 +57,16 @@ export class SceneManager {
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.scene = new THREE.Scene();
+
+    // Set up performance monitoring only in debug mode
+    if (import.meta.env.VITE_DEBUG_MODE === "true") {
+      this.stats = new Stats();
+      document.body.appendChild(this.stats.dom);
+      this.stats.dom.style.position = "absolute";
+      this.stats.dom.style.top = "1px";
+      this.stats.dom.style.left = "1px";
+      this.stats.showPanel(1); // 0: fps, 1: ms, 2: mb, 3+: custom
+    }
 
     this.camera = new THREE.PerspectiveCamera(
       75,
@@ -149,7 +163,12 @@ export class SceneManager {
   }
 
   private animate = (): void => {
+    this.stats?.begin();
+
     this.renderer.render(this.scene, this.camera);
+
+    this.stats?.end();
+
     this.animationId = requestAnimationFrame(this.animate);
   };
 
