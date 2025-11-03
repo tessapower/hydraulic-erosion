@@ -1,0 +1,21 @@
+{
+  "name": "hydraulic-erosion",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.45.0",
+    "eslint": "^9.37.0",
+    "prettier": "^3.6.2",
+    "vite": "^7.1.7"
+  }
+}
