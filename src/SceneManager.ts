@@ -24,13 +24,15 @@ export class SceneManager {
   private readonly scene: THREE.Scene;
   private renderer: THREE.WebGLRenderer;
   private animationId: number | null = null;
+  private frustumSize: number = SceneManager.TERRAIN_SIZE * 1.2;
 
   private readonly landscape: Landscape;
   private readonly simulator: Simulator;
   private readonly guiManager: GuiManager;
 
   // Camera
-  private readonly camera: THREE.Camera;
+  private readonly camera: THREE.OrthographicCamera;
+  private readonly target: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
 
   // Performance monitoring (only in debug mode)
   private stats?: Stats;
@@ -49,16 +51,29 @@ export class SceneManager {
       this.stats.showPanel(1); // 0: fps, 1: ms, 2: mb, 3+: custom
     }
 
-    this.camera = new THREE.PerspectiveCamera(
-      75,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1000,
+    const aspect = window.innerWidth / window.innerHeight;
+
+    // How much of the terrain we want to fit in view (pad a bit beyond size)
+    this.frustumSize = SceneManager.TERRAIN_SIZE * 1.2;
+
+    const halfH = this.frustumSize / 2;
+    const halfW = halfH * aspect;
+
+    this.camera = new THREE.OrthographicCamera(
+      -halfW,  // left
+      halfW,  // right
+      halfH,  // top
+      -halfH,  // bottom
+      -800,    // near
+      800     // far
     );
-    // Set camera position
+
+// Set camera position and target similar to before
     this.camera.position.set(400, 400, 400);
-    // Look at origin
-    this.camera.lookAt(0, 0, 0);
+    this.camera.lookAt(this.target);
+
+    this.camera.zoom = 1.0;
+    this.camera.updateProjectionMatrix();
 
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
@@ -74,6 +89,8 @@ export class SceneManager {
     // Handle resize
     window.addEventListener("resize", this.handleResize);
 
+    // Handle zooming in and out with mouse wheel
+    this.canvas.addEventListener("wheel", this.onWheel, { passive: false });
 
     // Seed random number generator to pass to landscape for generating
     // reproducible terrain features
@@ -148,14 +165,36 @@ export class SceneManager {
   };
 
   private handleResize = (): void => {
-    // Update camera aspect ratio and projection matrix
-    const aspectRatio = window.innerWidth / window.innerHeight;
-    if (this.camera instanceof THREE.PerspectiveCamera) {
-      this.camera.aspect = aspectRatio;
-      this.camera.updateProjectionMatrix();
-    }
+    const aspect = window.innerWidth / window.innerHeight;
+
+    const halfH = this.frustumSize / 2;
+    const halfW = halfH * aspect;
+
+    this.camera.left = -halfW;
+    this.camera.right = halfW;
+    this.camera.top = halfH;
+    this.camera.bottom = -halfH;
+    this.camera.updateProjectionMatrix();
 
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+  };
+
+  // Normalize wheel delta across browsers and zoom the active camera
+  private onWheel = (e: WheelEvent): void => {
+    // Prevent page scroll
+    e.preventDefault();
+
+    // Normalize delta (DOM_DELTA_LINE ≈ lines, DOM_DELTA_PIXEL ≈ pixels)
+    const lineHeight = 16;
+    const delta = e.deltaMode === 1 ? e.deltaY * lineHeight : e.deltaY;
+
+    // Sensitivity: smaller = slower zoom (tweak to taste)
+    const sensitivity = 0.0015;
+
+    // Multiply zoom for smooth exponential feel
+    const nextZoom = this.camera.zoom * (1 - delta * sensitivity);
+    this.camera.zoom = THREE.MathUtils.clamp(nextZoom, 0.2, 5.0);
+    this.camera.updateProjectionMatrix();
   };
 
   dispose(): void {
