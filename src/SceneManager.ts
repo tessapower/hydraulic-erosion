@@ -35,34 +35,6 @@ export class SceneManager {
   // Performance monitoring (only in debug mode)
   private stats?: Stats;
 
-  // Lighting
-  private readonly lightingConfig = {
-    ambient: {
-      color: 0xffffff,
-      intensity: 1,
-    },
-    sun: {
-      color: 0xffffff,
-      intensity: 3,
-      position: new THREE.Vector3(350, 150, 0),
-      targetPosition: new THREE.Vector3(0, 0, 0),
-    },
-    shadow: {
-      mapSize: 2048,
-      cameraNear: 0.5,
-      cameraFar: 800,
-      cameraBounds: 600,
-      bias: -0.0005,
-      normalBias: 0.05,
-      radius: 15,
-    },
-    hemisphere: {
-      skyColor: 0xffffff,
-      groundColor: 0xf5f5f5,
-      intensity: 0.3,
-    },
-  } as const;
-
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.scene = new THREE.Scene();
@@ -96,9 +68,8 @@ export class SceneManager {
     // Set up renderer
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    // Enable shadows
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    // Disable shadows, we handle lighting in the shader
+    this.renderer.shadowMap.enabled = false;
 
     // Handle resize
     window.addEventListener("resize", this.handleResize);
@@ -152,59 +123,11 @@ export class SceneManager {
     this.scene.background = new THREE.Color(0xa1a2a6);
     this.scene.add(this.landscape.getMesh());
 
-    // Setup lighting
-    this.setupLighting();
-
     // Setup GUI
     this.guiManager = new GuiManager();
-    this.guiManager.register("landscape", new LandscapeControls(this.landscape));
     this.guiManager.register("shader", new ShaderControls(this.landscape.getShader()));
+    this.guiManager.register("landscape", new LandscapeControls(this.landscape));
     this.guiManager.register("erosion", new ErosionControls(this.simulator, erosion));
-  }
-
-  private setupLighting(): void {
-    const { ambient, sun, shadow, hemisphere } = this.lightingConfig;
-
-    // Ambient light provides base illumination
-    const ambientLight = new THREE.AmbientLight(
-      ambient.color,
-      ambient.intensity,
-    );
-
-    // Directional light simulates sunlight
-    const sunLight = new THREE.DirectionalLight(sun.color, sun.intensity);
-    sunLight.position.copy(sun.position);
-    sunLight.castShadow = true;
-
-    // Create a dedicated Object3D for the sun's target at the center of the terrain
-    // This ensures shadows remain fixed and do not shift with camera movement
-    const sunTarget = new THREE.Object3D();
-    sunTarget.position.copy(sun.targetPosition);
-    this.scene.add(sunTarget);
-    sunLight.target = sunTarget;
-
-    // Configure shadow camera bounds to cover the terrain
-    // Large bounds help prevent shadow "swimming" artifacts
-    sunLight.shadow.mapSize.width = shadow.mapSize;
-    sunLight.shadow.mapSize.height = shadow.mapSize;
-    sunLight.shadow.camera.near = shadow.cameraNear;
-    sunLight.shadow.camera.far = shadow.cameraFar;
-    sunLight.shadow.camera.left = -shadow.cameraBounds;
-    sunLight.shadow.camera.right = shadow.cameraBounds;
-    sunLight.shadow.camera.top = shadow.cameraBounds;
-    sunLight.shadow.camera.bottom = -shadow.cameraBounds;
-    sunLight.shadow.bias = shadow.bias;
-    sunLight.shadow.normalBias = shadow.normalBias;
-    sunLight.shadow.radius = shadow.radius;
-
-    // Hemisphere light simulates sky and ground lighting
-    const hemiLight = new THREE.HemisphereLight(
-      hemisphere.skyColor,
-      hemisphere.groundColor,
-      hemisphere.intensity,
-    );
-
-    this.scene.add(sunLight, ambientLight, hemiLight);
   }
 
   start(): void {

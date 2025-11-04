@@ -12,8 +12,6 @@ export function createPlaneMesh(
   const mesh = new THREE.Mesh(geometry, material);
   // Rotate to lay flat
   mesh.rotation.x = -Math.PI / 2;
-  mesh.receiveShadow = true;
-  mesh.castShadow = true;
 
   return mesh;
 }
