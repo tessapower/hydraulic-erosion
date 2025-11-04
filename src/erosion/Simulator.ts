@@ -43,8 +43,8 @@ export class Simulator {
     }
 
     const heightMap = this.landscape.getHeightMap();
-    const width = Math.sqrt(heightMap.length);
-    const height = width;
+    // Since this is a square heightmap, width === height
+    const size = Math.sqrt(heightMap.length);
 
     // Run multiple erosion iterations per frame, but don't exceed max
     const iterationsToRun = Math.min(
@@ -53,12 +53,12 @@ export class Simulator {
     );
 
     for (let i = 0; i < iterationsToRun; i++) {
-      this.erosion.simulateSingleDroplet(heightMap, width, height);
+      this.erosion.simulateSingleDroplet(heightMap, size, size);
       this.totalIterations++;
     }
 
     // Apply accumulated changes to heightmap
-    this.erosion.applyChanges(heightMap, width, height);
+    this.erosion.applyChanges(heightMap, size, size);
 
     // Apply heightmap back to landscape
     const vertices = this.landscape.getMesh().geometry.attributes.position;
