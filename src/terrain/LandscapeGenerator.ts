@@ -4,23 +4,9 @@ import { createNoise2D, type NoiseFunction2D } from "simplex-noise";
 import { type RandomFn } from "../utils/Random.ts";
 
 /**
- * Generates procedural terrain heightmaps using noise,
- * Voronoi, warping, and peaks.
+ * Generates procedural terrain heightmaps using noise.
  *
  * Key concepts:
- * - Simplex noise for organic terrain variation
- * - Voronoi falloff for island shapes
- * - Domain warping for more natural, less grid-like features
- * - Peaks for mountainous regions
- *
- * Parameters:
- * - numIslands: Number of Voronoi seed points for islands
- * - islandThreshold: Controls land/sea boundary
- * - voronoiFalloff: Controls how sharply islands fall off into sea
- * - warpStrength, warpFrequency: Control domain warping
- * - peaksFrequency, peaksAmplitude: Control peak generation
- * - terrainFrequency: Controls base terrain variation
- * - islandsWeight, terrainWeight, peaksWeight: Blend weights for each feature
  */
 export default class LandscapeGenerator {
   private static readonly DEFAULT_WIDTH_SEGMENTS: number = 513;
