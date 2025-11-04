@@ -7,6 +7,7 @@ import { BeyerErosion } from "./erosion/BeyerErosion";
 import { GuiManager } from "./gui/GuiManager";
 import { LandscapeControls } from "./gui/LandscapeControls";
 import { ErosionControls } from "./gui/ErosionControls";
+import { ShaderControls } from "./gui/ShaderControls";
 import { Simulator } from "./erosion/Simulator";
 import Stats from "stats.js";
 
@@ -157,6 +158,7 @@ export class SceneManager {
     // Setup GUI
     this.guiManager = new GuiManager();
     this.guiManager.register("landscape", new LandscapeControls(this.landscape));
+    this.guiManager.register("shader", new ShaderControls(this.landscape.getShader()));
     this.guiManager.register("erosion", new ErosionControls(this.simulator, erosion));
   }
 
