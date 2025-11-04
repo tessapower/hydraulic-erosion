@@ -16,8 +16,8 @@ import Stats from "stats.js";
  * and GUI. Handles initialization, animation loop, resizing, and cleanup.
  */
 export class SceneManager {
-  private static readonly TERRAIN_SIZE = 512;
-  private static readonly TERRAIN_RESOLUTION = 512;
+  private static readonly TERRAIN_SIZE = 256;
+  private static readonly TERRAIN_RESOLUTION = 256;
   private static readonly RANDOM_SEED = 42;
 
   private readonly canvas: HTMLCanvasElement;

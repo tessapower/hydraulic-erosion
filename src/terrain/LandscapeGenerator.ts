@@ -29,9 +29,9 @@ export default class LandscapeGenerator {
 
   // Multi-octave noise parameters
   // Number of noise layers
-  public octaves: number = 6;
+  public octaves: number = 15;
   // Amplitude multiplier per octave (0.5 = each octave is half as strong)
-  public persistence: number = 0.5;
+  public persistence: number = 0.6;
   // Frequency multiplier per octave (2.0 = each octave is twice as frequent)
   public lacunarity: number = 2.0;
 

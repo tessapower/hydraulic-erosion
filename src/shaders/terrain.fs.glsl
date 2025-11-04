@@ -22,10 +22,10 @@ void main() {
     float diffuse = clamp(dot(normal, lightDir), 0.1, 0.9);
 
     // Ambient
-    float ambient = 0.01;
+    float ambient = 0.1;
 
     // Specular
-    float specular = 0.1 * pow(max(dot(viewDir, reflectDir), 0.1), 64.0);
+    float specular = 0.05 * pow(max(dot(viewDir, reflectDir), 0.1), 64.0);
 
     // Combine
     vec3 lighting = u_lightColor * u_lightStrength * (diffuse + ambient + specular);

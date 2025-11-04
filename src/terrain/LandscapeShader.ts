@@ -7,10 +7,10 @@ export function createLandscapeShader(): THREE.ShaderMaterial {
     uniforms: {
       u_flatColor: { value: new THREE.Color(0x72a172) },  // Grass green
       u_steepColor: { value: new THREE.Color(0xad9d90) }, // Dirt brown
-      u_steepness: { value: 0.5 },                                 // Threshold
+      u_steepness: { value: 0.8 },                                 // Threshold
       u_lightDirection: { value: new THREE.Vector3(1, 1, 1).normalize() },
       u_lightColor: { value: new THREE.Color(1.0, 1.0, 0.9) },
-      u_lightStrength: { value: 2.0 },
+      u_lightStrength: { value: 1.4 },
     },
     vertexShader: vertShader,
     fragmentShader: fragShader,
