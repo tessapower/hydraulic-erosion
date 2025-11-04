@@ -85,6 +85,7 @@ export class SceneManager {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     // Disable shadows, we handle lighting in the shader
     this.renderer.shadowMap.enabled = false;
+    this.renderer.toneMapping = THREE.NoToneMapping
 
     // Handle resize
     window.addEventListener("resize", this.handleResize);

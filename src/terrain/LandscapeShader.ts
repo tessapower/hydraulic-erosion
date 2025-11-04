@@ -14,5 +14,6 @@ export function createLandscapeShader(): THREE.ShaderMaterial {
     },
     vertexShader: vertShader,
     fragmentShader: fragShader,
+    toneMapped: false,
   });
 }
