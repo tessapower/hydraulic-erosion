@@ -103,7 +103,7 @@ export class ErosionControls implements IGuiModule {
       speed: 100, // Default iterations per frame
     };
 
-    erosionFolder
+    const speedController = erosionFolder
       .add(
         speedControl,
         'speed',
@@ -115,9 +115,11 @@ export class ErosionControls implements IGuiModule {
       .onChange((value: number) => {
         this.simulator.setIterationsPerFrame(value);
       });
+    speedController.domElement.title = 'Number of droplets to simulate per frame (higher = faster erosion)';
+
 
     // Erosion parameters
-    const params = erosionFolder.addFolder('Parameters');
+    const params = erosionFolder.addFolder('Erosion Parameters');
 
     params
       .add(
@@ -129,9 +131,11 @@ export class ErosionControls implements IGuiModule {
       )
       .name('Max Droplets')
       .onChange(() => {
-        // If erosion is complete, reset the completion state by updating button states
+        // Stop and reset simulation when max droplets changes
+        this.simulator.stop();
+        this.simulator.reset();
         this.updateButtonStates();
-      });
+      }).domElement.title = 'Maximum number of water droplets to simulate';
 
     params
       .add(
@@ -141,7 +145,8 @@ export class ErosionControls implements IGuiModule {
         this.controls.maxPath.max,
         this.controls.maxPath.step
       )
-      .name('Max Path Length');
+      .name('Droplet Lifetime').domElement.title = 'Maximum length of' +
+      ' droplet lifetime (higher = more erosion per droplet)';
 
     params
       .add(
@@ -151,7 +156,7 @@ export class ErosionControls implements IGuiModule {
         this.controls.inertia.max,
         this.controls.inertia.step
       )
-      .name('Inertia');
+      .name('Inertia').domElement.title = 'How much droplets maintain their direction (0 = follow slope exactly, 1 = ignore slope)';
 
     params
       .add(
@@ -161,7 +166,7 @@ export class ErosionControls implements IGuiModule {
         this.controls.capacity.max,
         this.controls.capacity.step
       )
-      .name('Sediment Capacity');
+      .name('Sediment Capacity').domElement.title = 'Multiplier for how much sediment a droplet can carry';
 
     params
       .add(
@@ -171,7 +176,7 @@ export class ErosionControls implements IGuiModule {
         this.controls.minSlope.max,
         this.controls.minSlope.step
       )
-      .name('Min Slope');
+      .name('Min Slope').domElement.title = 'Minimum slope used in sediment capacity calculation';
 
     params
       .add(
@@ -181,7 +186,7 @@ export class ErosionControls implements IGuiModule {
         this.controls.erosionSpeed.max,
         this.controls.erosionSpeed.step
       )
-      .name('Erosion Speed');
+      .name('Erosion Speed').domElement.title = 'How quickly terrain is eroded (0 = no erosion, 1 = maximum)';
 
     params
       .add(
@@ -191,7 +196,7 @@ export class ErosionControls implements IGuiModule {
         this.controls.depositionSpeed.max,
         this.controls.depositionSpeed.step
       )
-      .name('Deposition Speed');
+      .name('Deposition Speed').domElement.title = 'How quickly sediment is deposited (0 = no deposition, 1 = maximum)';
 
     params
       .add(
@@ -201,7 +206,7 @@ export class ErosionControls implements IGuiModule {
         this.controls.evaporationSpeed.max,
         this.controls.evaporationSpeed.step
       )
-      .name('Evaporation Speed');
+      .name('Evaporation Speed').domElement.title = 'How quickly water evaporates from droplets (higher = shorter droplet lifetime)';
 
     params
       .add(
@@ -211,7 +216,7 @@ export class ErosionControls implements IGuiModule {
         this.controls.gravity.max,
         this.controls.gravity.step
       )
-      .name('Gravity');
+      .name('Gravity').domElement.title = 'Gravity acceleration factor affecting droplet velocity';
 
     params
       .add(
@@ -221,7 +226,7 @@ export class ErosionControls implements IGuiModule {
         this.controls.erosionRadius.max,
         this.controls.erosionRadius.step
       )
-      .name('Erosion Radius');
+      .name('Erosion Radius').domElement.title = 'Radius of terrain affected when eroding (larger = smoother erosion)';
 
     params
       .add(
@@ -231,7 +236,7 @@ export class ErosionControls implements IGuiModule {
         this.controls.depositionRadius.max,
         this.controls.depositionRadius.step
       )
-      .name('Deposition Radius');
+      .name('Deposition Radius').domElement.title = 'Radius of terrain affected when depositing sediment (larger = smoother deposits)';
   }
 
   private updateButtonStates(): void {

@@ -37,7 +37,7 @@ export class LandscapeControls implements IGuiModule {
       .name("Terrain Frequency")
       .onFinishChange(() => {
         this.landscape.regenerate();
-      });
+      }).domElement.title = "Frequency of base terrain noise (higher = more detailed features)";
 
     folder
       .add(
@@ -50,7 +50,7 @@ export class LandscapeControls implements IGuiModule {
       .name("Terrain Amplitude")
       .onFinishChange(() => {
         this.landscape.regenerate();
-      });
+      }).domElement.title = "Height multiplier for terrain features (higher = taller mountains)";
 
     folder
       .add(
@@ -71,7 +71,8 @@ export class LandscapeControls implements IGuiModule {
         this.landscape.regenerate();
       },
     };
-    folder.add(regenerateControl, "regenerate").name("Regenerate");
+    const regenerateButton = folder.add(regenerateControl, "regenerate").name("Regenerate");
+    regenerateButton.domElement.title = "Generate new terrain with current settings";
 
     folder.open();
   }
