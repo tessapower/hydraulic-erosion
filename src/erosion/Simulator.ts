@@ -52,9 +52,17 @@ export class Simulator {
       maxIterations - this.totalIterations
     );
 
+    // Apply changes every N droplets
+    const APPLY_EVERY = 10;
     for (let i = 0; i < iterationsToRun; i++) {
       this.erosion.simulateSingleDroplet(heightMap, size, size);
       this.totalIterations++;
+
+      // Apply changes more frequently
+      if (i % APPLY_EVERY === 0) {
+        // Apply changes to heightmap, changeMap will be reset in this method
+        this.erosion.applyChanges(heightMap, size, size);
+      }
     }
 
     // Apply accumulated changes to heightmap
