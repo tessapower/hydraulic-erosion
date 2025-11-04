@@ -3,6 +3,8 @@
 import * as THREE from "three";
 import LandscapeGenerator from "./LandscapeGenerator.ts";
 import { createPlaneMesh } from "./Plane.ts";
+import { LandscapeShader } from "./LandscapeShader.ts";
+
 /**
  * Manages landscape mesh creation, shader material, and height generation.
  */
@@ -11,7 +13,7 @@ export class Landscape {
   private static readonly DEFAULT_RESOLUTION = 512;
 
   private readonly mesh: THREE.Mesh;
-  private readonly material: THREE.MeshStandardMaterial;
+  private readonly shader: LandscapeShader;
   private readonly generator: LandscapeGenerator;
   private readonly segments: number;
   private readonly size: number;
@@ -25,9 +27,9 @@ export class Landscape {
     this.segments = resolution;
     this.generator = generator;
 
+    this.shader = new LandscapeShader();
     // Create initial terrain
-    this.material = new THREE.MeshStandardMaterial({});
-    this.mesh = createPlaneMesh(this.size, this.segments, this.material);
+    this.mesh = createPlaneMesh(this.size, this.segments, this.shader.getMaterial());
     this.generateHeights();
   }
 
@@ -61,6 +63,13 @@ export class Landscape {
    */
   getMesh(): THREE.Mesh {
     return this.mesh;
+  }
+
+  /**
+   * Gets the shader for accessing uniforms
+   */
+  getShader(): LandscapeShader {
+    return this.shader;
   }
 
   /**
@@ -98,8 +107,6 @@ export class Landscape {
    */
   dispose(): void {
     this.mesh.geometry.dispose();
-    if (this.mesh.material instanceof THREE.MeshStandardMaterial) {
-      this.mesh.material.dispose();
-    }
+    this.shader.dispose();
   }
 }
