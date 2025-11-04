@@ -15,6 +15,9 @@ export class LandscapeControls implements IGuiModule {
     terrainFrequency: { min: 0, max: 0.015, step: 0.001 },
     terrainAmplitude: { min: 10, max: 200, step: 5 },
     baseHeight: { min: -50, max: 50, step: 5 },
+    octaves: { min: 1, max: 12, step: 1 },
+    persistence: { min: 0.1, max: 0.9, step: 0.05 },
+    lacunarity: { min: 1.5, max: 3.0, step: 0.1 },
   } as const;
 
   constructor(landscape: Landscape) {
@@ -63,7 +66,46 @@ export class LandscapeControls implements IGuiModule {
       .name("Base Height")
       .onFinishChange(() => {
         this.landscape.regenerate();
-      });
+      }).domElement.title = "Base elevation offset for the entire terrain";
+
+    folder
+      .add(
+        generator,
+        "octaves",
+        this.controls.octaves.min,
+        this.controls.octaves.max,
+        this.controls.octaves.step,
+      )
+      .name("Octaves")
+      .onFinishChange(() => {
+        this.landscape.regenerate();
+      }).domElement.title = "Number of noise layers to combine (more = finer detail but slower)";
+
+    folder
+      .add(
+        generator,
+        "persistence",
+        this.controls.persistence.min,
+        this.controls.persistence.max,
+        this.controls.persistence.step,
+      )
+      .name("Persistence")
+      .onFinishChange(() => {
+        this.landscape.regenerate();
+      }).domElement.title = "How much each octave contributes (higher = rougher terrain)";
+
+    folder
+      .add(
+        generator,
+        "lacunarity",
+        this.controls.lacunarity.min,
+        this.controls.lacunarity.max,
+        this.controls.lacunarity.step,
+      )
+      .name("Lacunarity")
+      .onFinishChange(() => {
+        this.landscape.regenerate();
+      }).domElement.title = "Frequency multiplier between octaves (higher = more varied detail)";
 
     // Add regenerate button
     const regenerateControl = {
