@@ -31,5 +31,11 @@ void main() {
     vec3 lighting = u_lightColor * u_lightStrength * (diffuse + ambient + specular);
     vec3 finalColor = baseColor * lighting;
 
+    // Simple ambient occlusion based on slope, darkens the shadows on
+    // steeper surfaces
+    float slope = 1.0 - clamp(normal.y, 0.0, 1.0);
+    float ao = mix(1.0, 0.7, pow(slope, 1.2));
+    finalColor *= ao;
+
     gl_FragColor = vec4(finalColor, 1.0);
 }
