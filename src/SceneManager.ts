@@ -202,6 +202,7 @@ export class SceneManager {
     if (this.animationId !== null) cancelAnimationFrame(this.animationId);
 
     window.removeEventListener("resize", this.handleResize);
+    window.removeEventListener("wheel", this.onWheel);
 
     // Dispose scene objects
     this.landscape.dispose();

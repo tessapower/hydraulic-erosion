@@ -24,8 +24,12 @@ export default class LandscapeGenerator {
 
   // Terrain generation parameters (public for GUI control)
   public terrainFrequency: number = 0.005;
-  public terrainAmplitude: number = 100;
+  public baseFrequency: number = 1.0;
+  public terrainAmplitude: number = 60;
   public baseHeight: number = 0;
+
+  public minHeight: number = Infinity;
+  public maxHeight: number = -Infinity;
 
   // Multi-octave noise parameters
   // Number of noise layers
@@ -51,33 +55,30 @@ export default class LandscapeGenerator {
   generateHeightMap(): Float32Array {
     const heights = new Float32Array(this.widthSegments * this.heightSegments);
     this.generateHeights(this.widthSegments, this.heightSegments, heights);
+
     return heights;
   }
 
   /**
    * Generates multi-octave noise using fractional Brownian motion (fBm)
+   * Returns raw noise value (not normalized)
    */
-  private generateOctaveNoise(x: number, y: number): number {
+  private fbm(x: number, y: number): number {
     let value: number = 0;
     let amplitude: number = 1;
-    let frequency: number = 1;
-    // Used for normalization
-    let maxValue: number = 0;
+    let frequency: number = this.baseFrequency;
 
-    for (let i = 0; i < this.octaves; i++) {
+    for (let i: number = 0; i < this.octaves; i++) {
       // Sample noise at current frequency and scale by amplitude
       value += this.simplex(x * frequency, y * frequency) * amplitude;
-
-      // Track max possible value for normalization
-      maxValue += amplitude;
 
       // Increase frequency and decrease amplitude for next octave
       frequency *= this.lacunarity;
       amplitude *= this.persistence;
     }
 
-    // Normalize to [-1, 1] range
-    return value / maxValue;
+    // Return raw value
+    return value;
   }
 
   private generateHeights(
@@ -85,25 +86,29 @@ export default class LandscapeGenerator {
     height: number,
     heights: Float32Array,
   ): void {
+    // First pass: Generate all heights and track actual min/max
+    // Pass 1: raw values + min/max
     for (let y: number = 0; y < height; y++) {
+      const v: number = y / (height - 1); // unit domain [0,1]
       for (let x: number = 0; x < width; x++) {
-        const worldX: number = x - width / 2;
-        const worldY: number = y - height / 2;
+        const u: number = x / (width - 1); // unit domain [0,1]
 
-        // Use multi-octave noise for richer terrain features
-        // noiseValue ∈ [-1, 1];
-        const noiseValue: number = this.generateOctaveNoise(
-          worldX * this.terrainFrequency,
-          worldY * this.terrainFrequency,
-        );
-
-        // Convert from [-1, 1] to [0, terrainAmplitude]
-        const normalizedNoise: number = (noiseValue + 1) / 2; // [0, 1]
-        const scaledHeight: number = normalizedNoise * this.terrainAmplitude + this.baseHeight;
+        const noiseValue: number = this.fbm(u, v); // raw fBm sample
 
         const idx: number = y * width + x;
-        heights[idx] = scaledHeight;
+        heights[idx] = noiseValue;
+
+        if (noiseValue < this.minHeight) this.minHeight = noiseValue;
+        if (noiseValue > this.maxHeight) this.maxHeight = noiseValue;
       }
+    }
+
+    // Second pass: Normalize to [0, 1] based on actual range, then scale
+    const range: number = this.maxHeight - this.minHeight || 1;
+    for (let i: number = 0; i < heights.length; i++) {
+      // Normalize to [0, 1] using actual min/max
+      const normalized: number = (heights[i] - this.minHeight) / range;
+      heights[i] = normalized * this.terrainAmplitude + this.baseHeight;
     }
   }
 }
