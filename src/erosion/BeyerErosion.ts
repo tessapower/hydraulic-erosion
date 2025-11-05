@@ -109,21 +109,21 @@ export class BeyerErosion {
 
   // Default parameters from Beyer's paper
   static readonly DEFAULT_PARAMS: IErosionParams = {
-    iterations: 300000,
-    inertia: 0.3,
-    capacity: 8,
-    minSlope: 0.005,
-    erosionSpeed: 0.7,
-    depositionSpeed: 0.2,
-    evaporationSpeed: 0.02,
-    gravity: 9.81,
-    maxPath: 64,
-    erosionRadius: 5,
-    depositionRadius: 6, // Larger radius for smoother deposits
-    minLifetime: 0.5, // 50% to 150% of maxPath
-    maxLifetime: 1.5,
-    minWater: 0.7, // 70% to 130% initial water
-    maxWater: 1.3,
+    iterations: 200000,
+    inertia: 0.05,
+    capacity: 6,
+    minSlope: 0.01,
+    erosionSpeed: 0.3,
+    depositionSpeed: 0.3,
+    evaporationSpeed: 0.001,
+    gravity: 4,
+    maxPath: 24,
+    erosionRadius: 4,
+    depositionRadius: 4,
+    minLifetime: 0.7,
+    maxLifetime: 1.0,
+    minWater: 0.7,
+    maxWater: 1.2,
     enableBlurring: true,
     blurRadius: 1,
     blendFactor: 0.5,
