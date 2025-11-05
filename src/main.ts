@@ -1,6 +1,6 @@
 // src/main.ts
-import './style.css'
-import { SceneManager } from './SceneManager';
+import "./style.css";
+import { SceneManager } from "./SceneManager";
 
 const canvas: HTMLCanvasElement = document.querySelector<HTMLCanvasElement>('#three-canvas')!;
 const sceneManager = new SceneManager(canvas);

@@ -1,6 +1,6 @@
 // Simulator.ts
-import { Landscape } from '../terrain/Landscape';
-import { PBErosion } from './PBErosion.ts';
+import { Landscape } from "../terrain/Landscape";
+import { PBErosion } from "./PBErosion";
 
 export class Simulator {
   private landscape: Landscape;

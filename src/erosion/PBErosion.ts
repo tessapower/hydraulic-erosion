@@ -7,8 +7,7 @@
 
 
 import * as THREE from "three";
-import { type RandomFn } from "../utils/Random.ts";
-import {Vector2} from "three";
+import { type RandomFn } from "../utils/Random";
 
 /**
  * Parameters for the physics-based erosion simulation.
@@ -44,14 +43,14 @@ export interface IErosionParams {
 
 export class PBErosion {
   private static Droplet = class {
-    position: Vector2;
-    direction: Vector2;
+    position: THREE.Vector2;
+    direction: THREE.Vector2;
     volume: number;
     sediment: number;
 
     constructor(
-      startPosition: Vector2 = new Vector2(0, 0),
-      direction: Vector2 = new Vector2(0, 0),
+      startPosition: THREE.Vector2 = new THREE.Vector2(0, 0),
+      direction: THREE.Vector2 = new THREE.Vector2(0, 0),
     ) {
       this.position = startPosition.clone();
       this.direction = direction.clone();

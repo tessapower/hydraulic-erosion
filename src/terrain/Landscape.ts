@@ -1,9 +1,9 @@
 // Landscape.ts: Manages landscape mesh creation and updates
 
 import * as THREE from "three";
-import LandscapeGenerator from "./LandscapeGenerator.ts";
-import { createPlaneMesh } from "./Plane.ts";
-import { createLandscapeShader } from "./LandscapeShader.ts";
+import LandscapeGenerator from "./LandscapeGenerator";
+import { createPlaneMesh } from "./Plane";
+import { createLandscapeShader } from "./LandscapeShader";
 
 /**
  * Manages landscape mesh creation, shader material, and height generation.

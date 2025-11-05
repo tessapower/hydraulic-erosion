@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { Landscape } from "./terrain/Landscape";
 import LandscapeGenerator from "./terrain/LandscapeGenerator";
 import { BeyerErosion } from "./erosion/BeyerErosion";
-import { PBErosion } from "./erosion/PBErosion.ts";
+import { PBErosion } from "./erosion/PBErosion";
 import { GuiManager } from "./gui/GuiManager";
 import { LandscapeControls } from "./gui/LandscapeControls";
 import { ErosionControls } from "./gui/ErosionControls";

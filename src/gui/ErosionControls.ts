@@ -1,9 +1,9 @@
 // ErosionControls.ts: GUI controls for hydraulic erosion parameters
 
 import GUI from "lil-gui";
-import { Simulator } from '../erosion/Simulator';
-import { BeyerErosion } from '../erosion/BeyerErosion';
-import type { IGuiModule } from './GuiManager';
+import { Simulator } from "../erosion/Simulator";
+import { PBErosion } from "../erosion/PBErosion";
+import type { IGuiModule } from "./GuiManager";
 
 /**
  * Registers erosion-related controls with the GUI manager for interactive

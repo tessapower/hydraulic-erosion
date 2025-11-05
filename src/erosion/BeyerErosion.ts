@@ -7,7 +7,7 @@
 
 
 import * as THREE from "three";
-import { type RandomFn } from "../utils/Random.ts";
+import { type RandomFn } from "../utils/Random";
 
 /**
  * Parameters for Beyer's hydraulic erosion simulation.
