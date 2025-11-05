@@ -1,7 +1,7 @@
 // LandscapeGenerator.ts: generates a landscape procedurally
 
 import { createNoise2D, type NoiseFunction2D } from "simplex-noise";
-import { type RandomFn } from "../utils/Random.ts";
+import { type RandomFn } from "../utils/Random";
 
 /**
  * Generates procedural terrain heightmaps using multi-octave noise.

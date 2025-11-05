@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { Landscape } from "./terrain/Landscape";
 import LandscapeGenerator from "./terrain/LandscapeGenerator";
 import { BeyerErosion } from "./erosion/BeyerErosion";
+import { PBErosion } from "./erosion/PBErosion";
 import { GuiManager } from "./gui/GuiManager";
 import { LandscapeControls } from "./gui/LandscapeControls";
 import { ErosionControls } from "./gui/ErosionControls";
@@ -24,7 +25,7 @@ export class SceneManager {
   private readonly scene: THREE.Scene;
   private renderer: THREE.WebGLRenderer;
   private animationId: number | null = null;
-  private frustumSize: number = SceneManager.TERRAIN_SIZE * 1.2;
+  private readonly frustumSize: number = SceneManager.TERRAIN_SIZE * 1.2;
 
   private readonly landscape: Landscape;
   private readonly simulator: Simulator;
@@ -106,27 +107,9 @@ export class SceneManager {
     );
 
     // Create erosion model
-    const erosion = new BeyerErosion({
-      iterations: 200000,
-      inertia: 0.05,
-      capacity: 6,
-      minSlope: 0.01,
-      erosionSpeed: 0.3,
-      depositionSpeed: 0.3,
-      evaporationSpeed: 0.001,
-      gravity: 4,
-      maxPath: 24,
-      erosionRadius: 4,
-      depositionRadius: 4,
-      minLifetime: 0.7,
-      maxLifetime: 1.0,
-      minWater: 0.7,
-      maxWater: 1.2,
-      enableBlurring: true,
-      blurRadius: 1,
-      blendFactor: 0.5,
-      randomFn: rng,
-    });
+    // const erosion = new BeyerErosion({randomFn: rng});
+
+    const erosion: PBErosion = new PBErosion({randomFn: rng});
 
     // Create landscape with injected dependencies
     this.landscape = new Landscape(
@@ -138,7 +121,7 @@ export class SceneManager {
     // Create simulator to manage erosion process
     this.simulator = new Simulator(this.landscape, erosion);
 
-    this.scene.background = new THREE.Color(0xa1a2a6);
+    this.scene.background = new THREE.Color(0xb8a693);
     this.scene.add(this.landscape.getMesh());
 
     // Setup GUI

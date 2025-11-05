@@ -1,7 +1,7 @@
 // ShaderControls.ts
 
 import * as THREE from "three";
-import type {IGuiModule} from "./GuiManager.ts";
+import type { IGuiModule } from "./GuiManager";
 import type GUI from "lil-gui";
 
 export class ShaderControls implements IGuiModule {

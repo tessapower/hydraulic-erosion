@@ -1,16 +1,16 @@
 // Landscape.ts: Manages landscape mesh creation and updates
 
 import * as THREE from "three";
-import LandscapeGenerator from "./LandscapeGenerator.ts";
-import { createPlaneMesh } from "./Plane.ts";
-import { createLandscapeShader } from "./LandscapeShader.ts";
+import LandscapeGenerator from "./LandscapeGenerator";
+import { createPlaneMesh } from "./Plane";
+import { createLandscapeShader } from "./LandscapeShader";
 
 /**
  * Manages landscape mesh creation, shader material, and height generation.
  */
 export class Landscape {
-  private static readonly DEFAULT_SIZE = 512;
-  private static readonly DEFAULT_RESOLUTION = 512;
+  private static readonly DEFAULT_SIZE: number = 512;
+  private static readonly DEFAULT_RESOLUTION: number = 512;
 
   private readonly mesh: THREE.Mesh;
   private readonly shader: THREE.ShaderMaterial;
@@ -42,7 +42,7 @@ export class Landscape {
   private applyHeightMap(heightMap: Float32Array): void {
     const vertices = this.mesh.geometry.attributes.position;
 
-    for (let i = 0; i < vertices.count; i++) {
+    for (let i: number = 0; i < vertices.count; i++) {
       vertices.setZ(i, heightMap[i]);
     }
 
@@ -86,7 +86,7 @@ export class Landscape {
     const vertices = this.mesh.geometry.attributes.position;
     const heightMap = new Float32Array(vertices.count);
 
-    for (let i = 0; i < vertices.count; i++) {
+    for (let i: number = 0; i < vertices.count; i++) {
       heightMap[i] = vertices.getZ(i);
     }
 
