@@ -1,33 +1,77 @@
-// BeyerErosion.ts: Complete implementation of Beyer's hydraulic erosion algorithm
+// BeyerErosion.ts: Adapted implementation of Beyer's hydraulic erosion
+// algorithm, estimating hydraulic erosion using a particle-based model.
+//
+// Source(s):
+// - http://www.firespark.de/resources/downloads/implementation%20of%20a%20methode%20for%20hydraulic%20erosion.pdf
+// - https://ranmantaru.com/blog/2011/10/08/water-erosion-on-heightmap-terrain/
+
 
 import * as THREE from "three";
 import { type RandomFn } from "../utils/Random.ts";
 
 export interface ErosionParams {
   // Core simulation parameters
-  iterations: number; // Number of droplets to simulate
-  inertia: number; // Direction blending (0-1)
-  capacity: number; // Sediment carry capacity multiplier
-  minSlope: number; // Minimum slope for capacity calculation
-  erosionSpeed: number; // How fast erosion happens (0-1)
-  depositionSpeed: number; // How fast deposition happens (0-1)
-  evaporationSpeed: number; // How fast water evaporates (0-1)
-  gravity: number; // Gravity acceleration factor
-  maxPath: number; // Maximum steps per droplet
-  erosionRadius: number; // Radius for erosion brush
-  depositionRadius: number; // Radius for deposition brush (can be larger for smoother deposits)
+
+  /** Number of water droplets to simulate */
+  iterations: number;
+
+  /** Direction inertia factor (0-1). Higher values make droplets flow straighter */
+  inertia: number;
+
+  /** Sediment carrying capacity multiplier. Higher values allow more sediment transport */
+  capacity: number;
+
+  /** Minimum slope angle for capacity calculation. Prevents erosion on flat terrain */
+  minSlope: number;
+
+  /** Rate of terrain erosion (0-1). Higher values erode terrain faster */
+  erosionSpeed: number;
+
+  /** Rate of sediment deposition (0-1). Higher values deposit sediment faster */
+  depositionSpeed: number;
+
+  /** Rate of water evaporation per step (0-1). Higher values shorten droplet lifetime */
+  evaporationSpeed: number;
+
+  /** Gravity acceleration factor. Affects droplet velocity on slopes */
+  gravity: number;
+
+  /** Maximum number of simulation steps per droplet */
+  maxPath: number;
+
+  /** Radius in pixels for erosion brush. Larger values create smoother erosion */
+  erosionRadius: number;
+
+  /** Radius in pixels for deposition brush. Can be larger than erosionRadius for smoother deposits */
+  depositionRadius: number;
 
   // Droplet variation parameters
-  minLifetime: number; // Minimum lifetime multiplier (0.5 = 50% of maxPath)
-  maxLifetime: number; // Maximum lifetime multiplier (1.5 = 150% of maxPath)
-  minWater: number; // Minimum initial water (0.5 = half water)
-  maxWater: number; // Maximum initial water (1.5 = 1.5x water)
+
+  /** Minimum lifetime multiplier (e.g., 0.5 = 50% of maxPath) */
+  minLifetime: number;
+
+  /** Maximum lifetime multiplier (e.g., 1.5 = 150% of maxPath) */
+  maxLifetime: number;
+
+  /** Minimum initial water volume (e.g., 0.7 = 70% of standard volume) */
+  minWater: number;
+
+  /** Maximum initial water volume (e.g., 1.3 = 130% of standard volume) */
+  maxWater: number;
 
   // Blurring parameters
-  enableBlurring: boolean; // Enable change map blurring
-  blurRadius: number; // Blur kernel radius
-  blendFactor: number; // Blend between blurred/unblurred (0-1)
-  randomFn: RandomFn; // Random function for reproducibility
+
+  /** Enable Gaussian blur on change map to smooth erosion artifacts */
+  enableBlurring: boolean;
+
+  /** Blur kernel radius in pixels. Larger values create smoother results */
+  blurRadius: number;
+
+  /** Blend factor between blurred and unblurred change map (0-1). 0 = no blur, 1 = full blur */
+  blendFactor: number;
+
+  /** Random number generator function for reproducible terrain generation */
+  randomFn: RandomFn;
 }
 
 export class BeyerErosion {
