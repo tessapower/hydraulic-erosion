@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { Landscape } from "./terrain/Landscape";
 import LandscapeGenerator from "./terrain/LandscapeGenerator";
 import { BeyerErosion } from "./erosion/BeyerErosion";
+import { PBErosion } from "./erosion/PBErosion.ts";
 import { GuiManager } from "./gui/GuiManager";
 import { LandscapeControls } from "./gui/LandscapeControls";
 import { ErosionControls } from "./gui/ErosionControls";
@@ -106,27 +107,9 @@ export class SceneManager {
     );
 
     // Create erosion model
-    const erosion = new BeyerErosion({
-      iterations: 200000,
-      inertia: 0.05,
-      capacity: 6,
-      minSlope: 0.01,
-      erosionSpeed: 0.3,
-      depositionSpeed: 0.3,
-      evaporationSpeed: 0.001,
-      gravity: 4,
-      maxPath: 24,
-      erosionRadius: 4,
-      depositionRadius: 4,
-      minLifetime: 0.7,
-      maxLifetime: 1.0,
-      minWater: 0.7,
-      maxWater: 1.2,
-      enableBlurring: true,
-      blurRadius: 1,
-      blendFactor: 0.5,
-      randomFn: rng,
-    });
+    // const erosion = new BeyerErosion({randomFn: rng});
+
+    const erosion: PBErosion = new PBErosion({randomFn: rng});
 
     // Create landscape with injected dependencies
     this.landscape = new Landscape(

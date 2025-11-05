@@ -1,15 +1,15 @@
-// ErosionSimulator.ts
+// Simulator.ts
 import { Landscape } from '../terrain/Landscape';
-import { BeyerErosion } from './BeyerErosion';
+import { PBErosion } from './PBErosion.ts';
 
 export class Simulator {
   private landscape: Landscape;
-  private erosion: BeyerErosion;
+  private erosion: PBErosion;
   private isRunning: boolean = false;
-  private iterationsPerFrame: number = 100;
+  private iterationsPerFrame: number = 500;
   private totalIterations: number = 0;
 
-  constructor(landscape: Landscape, erosion: BeyerErosion) {
+  constructor(landscape: Landscape, erosion: PBErosion) {
     this.landscape = landscape;
     this.erosion = erosion;
   }
@@ -39,6 +39,7 @@ export class Simulator {
     if (this.totalIterations >= maxIterations) {
       this.stop();
       console.log(`Erosion complete: ${this.totalIterations} droplets simulated`);
+
       return;
     }
 
