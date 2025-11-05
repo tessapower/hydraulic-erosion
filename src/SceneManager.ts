@@ -25,7 +25,7 @@ export class SceneManager {
   private readonly scene: THREE.Scene;
   private renderer: THREE.WebGLRenderer;
   private animationId: number | null = null;
-  private frustumSize: number = SceneManager.TERRAIN_SIZE * 1.2;
+  private readonly frustumSize: number = SceneManager.TERRAIN_SIZE * 1.2;
 
   private readonly landscape: Landscape;
   private readonly simulator: Simulator;
