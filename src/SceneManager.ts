@@ -121,7 +121,7 @@ export class SceneManager {
     // Create simulator to manage erosion process
     this.simulator = new Simulator(this.landscape, erosion);
 
-    this.scene.background = new THREE.Color(0xa1a2a6);
+    this.scene.background = new THREE.Color(0xb8a693);
     this.scene.add(this.landscape.getMesh());
 
     // Setup GUI
