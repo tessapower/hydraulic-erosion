@@ -1,6 +1,5 @@
 // BeyerErosion.ts: Complete implementation of Beyer's hydraulic erosion algorithm
 
-import Droplet from "./Droplet";
 import * as THREE from "three";
 import { type RandomFn } from "../utils/Random.ts";
 
@@ -32,6 +31,25 @@ export interface ErosionParams {
 }
 
 export class BeyerErosion {
+  private static Droplet = class {
+    position: THREE.Vector2;
+    direction: THREE.Vector2;
+    velocity: number;
+    volume: number;
+    sediment: number;
+
+    constructor(
+      startPosition: THREE.Vector2 = new THREE.Vector2(0, 0),
+      direction: THREE.Vector2 = new THREE.Vector2(0, 0),
+    ) {
+      this.position = startPosition.clone();
+      this.direction = direction.clone();
+      this.velocity = 1.0;
+      this.volume = 1.0;
+      this.sediment = 0;
+    }
+}
+
   public readonly params: ErosionParams;
 
   private static readonly EPSILON = 1e-3;
@@ -181,13 +199,13 @@ export class BeyerErosion {
     );
 
     // Create droplet instance
-    const droplet: Droplet = new Droplet(startPosition);
+    const droplet = new BeyerErosion.Droplet(startPosition);
 
     // Random initial water (70% to 130% by default)
     const initialWater =
       this.params.minWater +
       this.params.randomFn() * (this.params.maxWater - this.params.minWater);
-    droplet.water = initialWater;
+    droplet.volume = initialWater;
 
     // Random droplet lifetime (50% to 150% of maxPath by default)
     const lifetimeMultiplier =
@@ -258,7 +276,7 @@ export class BeyerErosion {
       const capacity: number =
         Math.max(-heightDiff, this.params.minSlope) *
         droplet.velocity *
-        droplet.water *
+        droplet.volume *
         this.params.capacity;
 
       // Calculate sediment capacity difference
@@ -268,7 +286,7 @@ export class BeyerErosion {
       if (sedimentDiff < 0) {
         // Carrying too much - deposit
         let amountToDeposit = -sedimentDiff * this.params.depositionSpeed;
-        amountToDeposit *= droplet.water / initialWater;
+        amountToDeposit *= droplet.volume / initialWater;
         droplet.sediment -= amountToDeposit;
 
         this.depositSediment(changeMap, origPosition, width, height, amountToDeposit);
@@ -293,8 +311,8 @@ export class BeyerErosion {
           );
       if (droplet.velocity < 0.05) break; // Droplet dies (stuck/stalled)
 
-      droplet.water *= 1 - this.params.evaporationSpeed;
-      if (droplet.water < 0.01) break; // Droplet dies (evaporated)
+      droplet.volume *= 1 - this.params.evaporationSpeed;
+      if (droplet.volume < 0.01) break; // Droplet dies (evaporated)
     }
   }
 
