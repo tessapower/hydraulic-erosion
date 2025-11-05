@@ -9,7 +9,11 @@
 import * as THREE from "three";
 import { type RandomFn } from "../utils/Random.ts";
 
-export interface ErosionParams {
+/**
+ * Parameters for Beyer's hydraulic erosion simulation.
+ * Controls droplet behavior, erosion/deposition rates, and post-processing.
+ */
+export interface IErosionParams {
   // Core simulation parameters
 
   /** Number of water droplets to simulate */
@@ -94,7 +98,7 @@ export class BeyerErosion {
     }
 }
 
-  public readonly params: ErosionParams;
+  public readonly params: IErosionParams;
 
   private static readonly EPSILON = 1e-3;
 
@@ -104,7 +108,7 @@ export class BeyerErosion {
   private changeMapHeight: number = 0;
 
   // Default parameters from Beyer's paper
-  static readonly DEFAULT_PARAMS: ErosionParams = {
+  static readonly DEFAULT_PARAMS: IErosionParams = {
     iterations: 300000,
     inertia: 0.3,
     capacity: 8,
@@ -126,7 +130,7 @@ export class BeyerErosion {
     randomFn: Math.random,
   };
 
-  constructor(params: Partial<ErosionParams> = {}) {
+  constructor(params: Partial<IErosionParams> = {}) {
     this.params = { ...BeyerErosion.DEFAULT_PARAMS, ...params };
   }
 
