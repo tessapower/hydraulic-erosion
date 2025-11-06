@@ -18,27 +18,30 @@ import type {IErosionModel} from "./erosion/IErosionModel";
  * and GUI. Handles initialization, animation loop, resizing, and cleanup.
  */
 export class SceneManager {
+  // Landscape settings
   private static readonly TERRAIN_SIZE = 256;
   private static readonly TERRAIN_RESOLUTION = 256;
   private static readonly RANDOM_SEED = 42;
 
   // Colors and fog settings
+  private static readonly BACKGROUND_COLOR = new THREE.Color(0xb8a693);
   private static readonly FOG_NEAR: number = 700;
   private static readonly FOG_FAR: number = 900;
+  private static readonly CAMERA_NEAR: number = -800;
+  private static readonly CAMERA_FAR: number = 800;
+  private static readonly CAMERA_POS: THREE.Vector3 = new THREE.Vector3(400, 400, 400);
+  private static readonly CAMERA_TARGET: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
+  // Scene components
   private readonly canvas: HTMLCanvasElement;
   private readonly scene: THREE.Scene;
   private renderer: THREE.WebGLRenderer;
   private animationId: number | null = null;
   private readonly frustumSize: number = SceneManager.TERRAIN_SIZE * 1.2;
-
   private readonly landscape: Landscape;
   private readonly simulator: Simulator;
   private readonly guiManager: GuiManager;
-
   // Camera
   private readonly camera: THREE.OrthographicCamera;
-  private readonly target: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
-
   // Performance monitoring (only in debug mode)
   private stats?: Stats;
 
@@ -70,17 +73,21 @@ export class SceneManager {
     const halfW = halfH * aspect;
 
     this.camera = new THREE.OrthographicCamera(
-      -halfW,  // left
+      -halfW, // left
       halfW,  // right
       halfH,  // top
-      -halfH,  // bottom
-      -800,    // near
-      800     // far
+      -halfH, // bottom
+      SceneManager.CAMERA_NEAR,
+      SceneManager.CAMERA_FAR,
     );
 
 // Set camera position and target similar to before
-    this.camera.position.set(400, 400, 400);
-    this.camera.lookAt(this.target);
+    this.camera.position.set(
+      SceneManager.CAMERA_POS.x,
+      SceneManager.CAMERA_POS.y,
+      SceneManager.CAMERA_POS.z
+    );
+    this.camera.lookAt(SceneManager.CAMERA_TARGET);
 
     this.camera.zoom = 1.0;
     this.camera.updateProjectionMatrix();
@@ -129,7 +136,7 @@ export class SceneManager {
     // Create simulator to manage erosion process
     this.simulator = new Simulator(this.landscape, physicsBased);
 
-    this.scene.background = new THREE.Color(0xb8a693);
+    this.scene.background = SceneManager.BACKGROUND_COLOR;
     this.scene.add(this.landscape.getMesh());
 
     // Setup GUI
