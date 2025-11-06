@@ -138,7 +138,7 @@ export class PBErosion implements IErosionModel, IErosionControls {
     this.simulateDroplet(heightMap, width, height);
   }
 
-  // No change map; writes go directly to 'heights'
+  // No change map; writes go directly to 'heightMap'
   applyChanges(_heightMap: Float32Array, _width: number, _height: number): void {
     // no-op by design
   }

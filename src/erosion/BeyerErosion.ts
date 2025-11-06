@@ -298,7 +298,7 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
    * Returns the reason the droplet died
    */
   private simulateDroplet(
-    heights: Float32Array,
+    heightMap: Float32Array,
     changeMap: Float32Array,
     width: number,
     height: number,
@@ -328,7 +328,7 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
     for (let step = 0; step < dropletMaxPath; step++) {
       // Calculate current gradient
       const gradient = this.calculateGradient(
-        heights,
+        heightMap,
         droplet.position,
         width,
         height,
@@ -336,7 +336,7 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
 
       // Calculate current height
       const currentHeight = this.interpolateHeight(
-        heights,
+        heightMap,
         droplet.position,
         width,
         height,
@@ -376,7 +376,7 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
       }
 
       const newHeight = this.interpolateHeight(
-        heights,
+        heightMap,
         droplet.position,
         width,
         height,
@@ -431,14 +431,14 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
    * Calculate gradient at position using bilinear interpolation
    */
   private calculateGradient(
-    heights: Float32Array,
+    heightMap: Float32Array,
     position: THREE.Vector2,
     width: number,
     height: number,
   ): THREE.Vector2 {
     const x = Math.floor(position.x);
     const y = Math.floor(position.y);
-    const [h00, h10, h01, h11] = this.sampleCorners(heights, x, y, width, height);
+    const [h00, h10, h01, h11] = this.sampleCorners(heightMap, x, y, width, height);
 
     const u = position.x - x;
     const v = position.y - y;
@@ -470,14 +470,14 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
    * Interpolate height at position using bilinear interpolation
    */
   private interpolateHeight(
-    heights: Float32Array,
+    heightMap: Float32Array,
     position: THREE.Vector2,
     width: number,
     height: number,
   ): number {
     const x = Math.floor(position.x);
     const y = Math.floor(position.y);
-    const [h00, h10, h01, h11] = this.sampleCorners(heights, x, y, width, height);
+    const [h00, h10, h01, h11] = this.sampleCorners(heightMap, x, y, width, height);
 
     const u = position.x - x;
     const v = position.y - y;
@@ -583,15 +583,15 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
    * Apply change map with blurring
    */
   private applyChangeMapWithBlur(
-    heights: Float32Array,
+    heightMap: Float32Array,
     changeMap: Float32Array,
     width: number,
     height: number,
   ): void {
     if (!this.params.enableBlurring) {
       // Apply changes directly
-      for (let i = 0; i < heights.length; i++) {
-        heights[i] += changeMap[i];
+      for (let i = 0; i < heightMap.length; i++) {
+        heightMap[i] += changeMap[i];
       }
       return;
     }
@@ -606,10 +606,10 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
 
     // Blend blurred and unblurred versions
     const blendFactor = this.params.blendFactor;
-    for (let i = 0; i < heights.length; i++) {
+    for (let i = 0; i < heightMap.length; i++) {
       const blendedChange =
         blurredChangeMap[i] * blendFactor + changeMap[i] * (1 - blendFactor);
-      heights[i] += blendedChange;
+      heightMap[i] += blendedChange;
     }
   }
 
