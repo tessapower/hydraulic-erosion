@@ -184,7 +184,6 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
       .onFinishChange(() => onParameterChange?.())
       .name('Deposition Radius')
       .domElement.title = 'Radius of terrain affected when depositing sediment (larger = smoother deposits)';
-
   }
 
   getControlsFolderName(): string {

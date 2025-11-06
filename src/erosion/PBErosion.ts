@@ -114,7 +114,7 @@ export class PBErosion implements IErosionModel, IErosionControls {
   }
 
   getControlsFolderName(): string {
-    return "Parameter Settings"
+    return "Parameter Settings";
   }
 
   //============================================= IErosionModel Interface ====//
