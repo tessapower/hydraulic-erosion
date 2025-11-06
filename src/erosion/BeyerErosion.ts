@@ -7,8 +7,8 @@
 
 import * as THREE from "three";
 import {type RandomFn} from "../utils/Random";
-import type {IErosionModel} from "./IErosionModel.ts";
-import type {IErosionControls} from "../gui/IErosionControls.ts";
+import type {IErosionModel} from "./IErosionModel";
+import type {IErosionControls} from "../gui/IErosionControls";
 import type GUI from "lil-gui";
 
 /**

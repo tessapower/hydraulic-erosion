@@ -2,9 +2,9 @@
 
 import GUI from "lil-gui";
 import {Simulator} from "../erosion/Simulator";
-import type {IGuiModule} from "./GuiManager.ts";
-import type {IErosionModel} from "../erosion/IErosionModel.ts";
-import type {IErosionControls} from "./IErosionControls.ts";
+import type {IGuiModule} from "./GuiManager";
+import type {IErosionModel} from "../erosion/IErosionModel";
+import type {IErosionControls} from "./IErosionControls";
 
 /**
  * Registers erosion-related controls with the GUI manager for interactive
@@ -156,7 +156,7 @@ export class ErosionControls implements IGuiModule {
     // Check if model implements IErosionControls
     if (this.implementsErosionControls(model)) {
       this.modelFolder = parentFolder.addFolder(model.getControlsFolderName());
-      
+
       // Let the model setup its own controls
       (model as IErosionControls).setupControls(this.modelFolder, () => {
         // Callback when parameters change

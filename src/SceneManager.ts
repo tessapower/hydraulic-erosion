@@ -11,7 +11,7 @@ import {ErosionControls} from "./gui/ErosionControls";
 import {ShaderControls} from "./gui/ShaderControls";
 import {Simulator} from "./erosion/Simulator";
 import Stats from "stats.js";
-import type {IErosionModel} from "./erosion/IErosionModel.ts";
+import type {IErosionModel} from "./erosion/IErosionModel";
 
 /**
  * Orchestrates the Three.js scene, including terrain, lighting, camera,
@@ -129,7 +129,7 @@ export class SceneManager {
     this.guiManager.register("shader",
       new ShaderControls(this.landscape.getShader())
     );
-    
+
     this.guiManager.register("landscape",
       new LandscapeControls(this.landscape));
 

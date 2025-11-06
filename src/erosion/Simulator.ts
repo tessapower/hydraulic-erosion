@@ -1,6 +1,6 @@
 // Simulator.ts
 import {Landscape} from "../terrain/Landscape";
-import type {IErosionModel} from "./IErosionModel.ts";
+import type {IErosionModel} from "./IErosionModel";
 
 export class Simulator {
   private landscape: Landscape;

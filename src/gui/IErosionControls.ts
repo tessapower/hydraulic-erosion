@@ -1,7 +1,7 @@
 // IErosionControls.ts: Interface for erosion models to provide GUI controls.
 
 import GUI from "lil-gui";
-import type {IGuiModule} from "./GuiManager.ts";
+import type {IGuiModule} from "./GuiManager";
 
 /**
  * Interface for erosion models that can provide their own GUI controls.
