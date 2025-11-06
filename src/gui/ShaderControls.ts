@@ -1,7 +1,7 @@
 // ShaderControls.ts
 
 import * as THREE from "three";
-import type { IGuiModule } from "./GuiManager";
+import type {IGuiModule} from "./GuiManager";
 import type GUI from "lil-gui";
 
 export class ShaderControls implements IGuiModule {
@@ -35,7 +35,7 @@ export class ShaderControls implements IGuiModule {
       .add(this.material.uniforms.u_lightStrength, "value", 0.0, 3.0, 0.1)
       .name("Light Strength");
 
-    folder.open();
+    folder.close();
   }
 
   getModuleName(): string {

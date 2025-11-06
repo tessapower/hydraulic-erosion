@@ -1,15 +1,15 @@
 // SceneManager.ts: Three.js scene setup and orchestration
 
 import * as THREE from "three";
-import { Landscape } from "./terrain/Landscape";
+import {Landscape} from "./terrain/Landscape";
 import LandscapeGenerator from "./terrain/LandscapeGenerator";
-import { BeyerErosion } from "./erosion/BeyerErosion";
-import { PBErosion } from "./erosion/PBErosion";
-import { GuiManager } from "./gui/GuiManager";
-import { LandscapeControls } from "./gui/LandscapeControls";
-import { ErosionControls } from "./gui/ErosionControls";
-import { ShaderControls } from "./gui/ShaderControls";
-import { Simulator } from "./erosion/Simulator";
+import {BeyerErosion} from "./erosion/BeyerErosion";
+import {PBErosion} from "./erosion/PBErosion";
+import {GuiManager} from "./gui/GuiManager";
+import {LandscapeControls} from "./gui/LandscapeControls";
+import {ErosionControls} from "./gui/ErosionControls";
+import {ShaderControls} from "./gui/ShaderControls";
+import {Simulator} from "./erosion/Simulator";
 import Stats from "stats.js";
 import type {IErosionModel} from "./erosion/IErosionModel.ts";
 
@@ -93,7 +93,7 @@ export class SceneManager {
     window.addEventListener("resize", this.handleResize);
 
     // Handle zooming in and out with mouse wheel
-    this.canvas.addEventListener("wheel", this.onWheel, { passive: false });
+    this.canvas.addEventListener("wheel", this.onWheel, {passive: false});
 
     // Seed random number generator to pass to landscape for generating
     // reproducible terrain features
@@ -147,6 +147,18 @@ export class SceneManager {
     this.animate();
   }
 
+  dispose(): void {
+    if (this.animationId !== null) cancelAnimationFrame(this.animationId);
+
+    window.removeEventListener("resize", this.handleResize);
+    window.removeEventListener("wheel", this.onWheel);
+
+    // Dispose scene objects
+    this.landscape.dispose();
+    this.guiManager.dispose();
+    this.renderer.dispose();
+  }
+
   private animate = (): void => {
     this.stats?.begin();
 
@@ -192,16 +204,4 @@ export class SceneManager {
     this.camera.zoom = THREE.MathUtils.clamp(nextZoom, 0.2, 5.0);
     this.camera.updateProjectionMatrix();
   };
-
-  dispose(): void {
-    if (this.animationId !== null) cancelAnimationFrame(this.animationId);
-
-    window.removeEventListener("resize", this.handleResize);
-    window.removeEventListener("wheel", this.onWheel);
-
-    // Dispose scene objects
-    this.landscape.dispose();
-    this.guiManager.dispose();
-    this.renderer.dispose();
-  }
 }
