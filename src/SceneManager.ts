@@ -11,6 +11,7 @@ import { ErosionControls } from "./gui/ErosionControls";
 import { ShaderControls } from "./gui/ShaderControls";
 import { Simulator } from "./erosion/Simulator";
 import Stats from "stats.js";
+import type {IErosionModel} from "./erosion/IErosionModel.ts";
 
 /**
  * Orchestrates the Three.js scene, including terrain, lighting, camera,
@@ -106,29 +107,40 @@ export class SceneManager {
       rng,
     );
 
-    // Create erosion model
-    // const erosion = new BeyerErosion({randomFn: rng});
-
-    const erosion: PBErosion = new PBErosion({randomFn: rng});
-
-    // Create landscape with injected dependencies
+    // Create landscape
     this.landscape = new Landscape(
       SceneManager.TERRAIN_SIZE,
       SceneManager.TERRAIN_RESOLUTION,
       generator,
     );
 
+    // Create erosion models
+    const beyer = new BeyerErosion({randomFn: rng});
+    const physicsBased: PBErosion = new PBErosion({randomFn: rng});
+
     // Create simulator to manage erosion process
-    this.simulator = new Simulator(this.landscape, erosion);
+    this.simulator = new Simulator(this.landscape, physicsBased);
 
     this.scene.background = new THREE.Color(0xb8a693);
     this.scene.add(this.landscape.getMesh());
 
     // Setup GUI
     this.guiManager = new GuiManager();
-    this.guiManager.register("shader", new ShaderControls(this.landscape.getShader()));
-    this.guiManager.register("landscape", new LandscapeControls(this.landscape));
-    this.guiManager.register("erosion", new ErosionControls(this.simulator, erosion));
+    this.guiManager.register("shader",
+      new ShaderControls(this.landscape.getShader())
+    );
+    
+    this.guiManager.register("landscape",
+      new LandscapeControls(this.landscape));
+
+    this.guiManager.register("erosion",
+      new ErosionControls(this.simulator,
+        new Map<string, IErosionModel>([
+          ["Physics Based", physicsBased],
+          ["Beyer", beyer],
+        ])
+      )
+    );
   }
 
   start(): void {
