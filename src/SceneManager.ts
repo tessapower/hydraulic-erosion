@@ -22,6 +22,9 @@ export class SceneManager {
   private static readonly TERRAIN_RESOLUTION = 256;
   private static readonly RANDOM_SEED = 42;
 
+  // Colors and fog settings
+  private static readonly FOG_NEAR: number = 700;
+  private static readonly FOG_FAR: number = 900;
   private readonly canvas: HTMLCanvasElement;
   private readonly scene: THREE.Scene;
   private renderer: THREE.WebGLRenderer;
@@ -42,6 +45,11 @@ export class SceneManager {
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.scene = new THREE.Scene();
+    this.scene.fog = new THREE.Fog(
+      SceneManager.BACKGROUND_COLOR,
+      SceneManager.FOG_NEAR,
+      SceneManager.FOG_FAR,
+    );
 
     // Set up performance monitoring only in debug mode
     if (import.meta.env.VITE_DEBUG_MODE === "true") {
