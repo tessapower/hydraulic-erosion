@@ -1,17 +1,17 @@
 // Simulator.ts
-import { Landscape } from "../terrain/Landscape";
-import { PBErosion } from "./PBErosion";
+import {Landscape} from "../terrain/Landscape";
+import type {IErosionModel} from "./IErosionModel";
 
 export class Simulator {
   private landscape: Landscape;
-  private erosion: PBErosion;
+  private erosionModel: IErosionModel;
   private isRunning: boolean = false;
   private iterationsPerFrame: number = 500;
-  private totalIterations: number = 0;
+  private iterationsCompleted: number = 0;
 
-  constructor(landscape: Landscape, erosion: PBErosion) {
+  constructor(landscape: Landscape, erosion: IErosionModel) {
     this.landscape = landscape;
-    this.erosion = erosion;
+    this.erosionModel = erosion;
   }
 
   start(): void {
@@ -23,7 +23,7 @@ export class Simulator {
   }
 
   reset(): void {
-    this.totalIterations = 0;
+    this.iterationsCompleted = 0;
     this.landscape.regenerate();
   }
 
@@ -35,10 +35,10 @@ export class Simulator {
     if (!this.isRunning) return;
 
     // Check if we've reached the maximum iterations
-    const maxIterations = this.erosion.params.iterations;
-    if (this.totalIterations >= maxIterations) {
+    const maxIterations = this.erosionModel.getIterations();
+    if (this.iterationsCompleted >= maxIterations) {
       this.stop();
-      console.log(`Erosion complete: ${this.totalIterations} droplets simulated`);
+      console.log(`Erosion complete: ${this.iterationsCompleted} droplets simulated`);
 
       return;
     }
@@ -50,24 +50,23 @@ export class Simulator {
     // Run multiple erosion iterations per frame, but don't exceed max
     const iterationsToRun = Math.min(
       this.iterationsPerFrame,
-      maxIterations - this.totalIterations
+      maxIterations - this.iterationsCompleted
     );
 
     // Apply changes every N droplets
     const APPLY_EVERY = 10;
     for (let i = 0; i < iterationsToRun; i++) {
-      this.erosion.simulateSingleDroplet(heightMap, size, size);
-      this.totalIterations++;
+      this.erosionModel.simulateStep(heightMap, size, size);
+      this.iterationsCompleted++;
 
-      // Apply changes more frequently
       if (i % APPLY_EVERY === 0) {
         // Apply changes to heightmap, changeMap will be reset in this method
-        this.erosion.applyChanges(heightMap, size, size);
+        this.erosionModel.applyChanges(heightMap, size, size);
       }
     }
 
     // Apply accumulated changes to heightmap
-    this.erosion.applyChanges(heightMap, size, size);
+    this.erosionModel.applyChanges(heightMap, size, size);
 
     // Apply heightmap back to landscape
     const vertices = this.landscape.getMesh().geometry.attributes.position;
@@ -79,21 +78,32 @@ export class Simulator {
     this.landscape.updateMesh();
   }
 
+  getErosionModel(): IErosionModel {
+    return this.erosionModel;
+  }
+
+  setErosionModel(model: IErosionModel): void {
+    this.erosionModel = model;
+  }
+
+  getIterationsCompleted(): number {
+    return this.iterationsCompleted;
+  }
+
   getTotalIterations(): number {
-    return this.totalIterations;
+    return this.erosionModel.getIterations();
   }
 
-  getMaxIterations(): number {
-    return this.erosion.params.iterations;
-  }
-
+  /**
+   * Returns the progress of the simulation as a percentage (0-100).
+   */
   getProgress(): number {
-    const max = this.erosion.params.iterations;
-    return max > 0 ? (this.totalIterations / max) * 100 : 0;
+    const max = this.erosionModel.getIterations();
+    return max > 0 ? (this.iterationsCompleted / max) * 100 : 0;
   }
 
   isComplete(): boolean {
-    return this.totalIterations >= this.erosion.params.iterations;
+    return this.iterationsCompleted >= this.erosionModel.getIterations();
   }
 
   getIsRunning(): boolean {

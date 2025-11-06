@@ -7,7 +7,10 @@
 
 
 import * as THREE from "three";
-import { type RandomFn } from "../utils/Random";
+import {type RandomFn} from "../utils/Random";
+import type {IErosionControls} from "../gui/IErosionControls";
+import type {IErosionModel} from "./IErosionModel";
+import GUI from "lil-gui";
 
 /**
  * Parameters for the physics-based erosion simulation.
@@ -41,7 +44,19 @@ export interface IErosionParams {
   randomFn: RandomFn;
 }
 
-export class PBErosion {
+export class PBErosion implements IErosionModel, IErosionControls {
+  static readonly DEFAULTS: IErosionParams = {
+    iterations: 200000,
+    dt: 1.2,
+    density: 1.0,
+    evaporationRate: 0.001,
+    depositionRate: 0.1,
+    minVolume: 0.01,
+    friction: 0.05,
+    heightScale: 1.0,
+    randomFn: Math.random,
+  };
+
   private static Droplet = class {
     position: THREE.Vector2;
     direction: THREE.Vector2;
@@ -61,40 +76,83 @@ export class PBErosion {
 
   public readonly params: IErosionParams;
 
-  static readonly DEFAULTS: IErosionParams = {
-    iterations: 200000,
-    dt: 1.2,
-    density: 1.0,
-    evaporationRate: 0.001,
-    depositionRate: 0.1,
-    minVolume: 0.01,
-    friction: 0.05,
-    heightScale: 1.0,
-    randomFn: Math.random,
-  };
-
   constructor(params: Partial<IErosionParams> = {}) {
-    this.params = { ...PBErosion.DEFAULTS, ...params };
+    this.params = {...PBErosion.DEFAULTS, ...params};
   }
 
-  simulateSingleDroplet(heights: Float32Array, width: number, height: number): void {
-    this.simulateDroplet(heights, width, height);
+  //========================================== IErosionControls Interface ====//
+  setupControls(gui: GUI, onParameterChange?: () => void): void {
+    gui.add(this.params, 'dt', 0.1, 3.0, 0.1)
+      .onFinishChange(() => onParameterChange?.())
+      .name('Time Step')
+      .domElement.title = 'Time Step';
+
+    gui.add(this.params, 'density', 0.5, 2.0, 0.1)
+      .onFinishChange(() => onParameterChange?.())
+      .name('Droplet Density')
+      .domElement.title = 'The density of the droplet fluid';
+
+    gui.add(this.params, 'evaporationRate', 0.001, 1.0, 0.001)
+      .onFinishChange(() => onParameterChange?.())
+      .name('Evaporation Rate')
+      .domElement.title = 'Rate at which droplets evaporate (smaller = longer simulation)';
+
+    gui.add(this.params, 'depositionRate', 0.001, 1.0, 0.001)
+      .onFinishChange(() => onParameterChange?.())
+      .name('Deposition Rate')
+      .domElement.title = 'Rate at which sediment is deposited/eroded';
+
+    gui.add(this.params, 'minVolume', 0.01, 1.0, 0.01)
+      .onFinishChange(() => onParameterChange?.())
+      .name('Min Droplet Volume')
+      .domElement.title = 'Minimum droplet volume before evaporation stops simulation';
+
+    gui.add(this.params, 'friction', 0.01, 1.0, 0.01)
+      .onFinishChange(() => onParameterChange?.())
+      .name('Friction')
+      .domElement.title = 'Velocity loss factor per timestep';
   }
 
-  // No change map; writes go directly to 'heights'
-  applyChanges(_heights: Float32Array, _width: number, _height: number): void {
+  getControlsFolderName(): string {
+    return "Parameter Settings";
+  }
+
+  //============================================= IErosionModel Interface ====//
+  getName(): string {
+    return "Physics-Based";
+  }
+
+  initialize(_width: number, _height: number): void {
+    // No-op
+  }
+
+  getIterations(): number {
+    return this.params.iterations;
+  }
+
+  setIterations(n: number): void {
+    this.params.iterations = n;
+  }
+
+  simulateStep(heightMap: Float32Array, width: number, height: number): void {
+    this.simulateDroplet(heightMap, width, height);
+  }
+
+  // No change map; writes go directly to 'heightMap'
+  applyChanges(_heightMap: Float32Array, _width: number, _height: number): void {
     // no-op by design
   }
 
   // Bulk erosion function
-  erode(heights: Float32Array, width: number, height: number): void {
+  erode(heightMap: Float32Array, width: number, height: number): void {
     for (let i = 0; i < this.params.iterations; i++) {
-      this.simulateDroplet(heights, width, height);
+      this.simulateDroplet(heightMap, width, height);
     }
   }
 
+  //========================================== Erosion Simulation Methods ====//
   private simulateDroplet(
-    heights: Float32Array,
+    heightMap: Float32Array,
     width: number,
     height: number
   ): void {
@@ -117,7 +175,7 @@ export class PBErosion {
       if (x < 1 || x >= width - 1 || y < 1 || y >= height - 1) break;
 
       // Compute surface normal at integer cell (weighted neighbors)
-      const normal = this.surfaceNormal(heights, width, height, x, y, this.params.heightScale);
+      const normal = this.surfaceNormal(heightMap, width, height, x, y, this.params.heightScale);
 
       // Accelerate by surface slope (project X/Z)
       // Scaled by droplet mass (volume * density)
@@ -139,8 +197,8 @@ export class PBErosion {
 
       const nextCell = new THREE.Vector2(Math.floor(droplet.position.x), Math.floor(droplet.position.y));
 
-      const startCellHeight: number = heights[y * width + x];
-      const nextCellHeight: number = heights[nextCell.y * width + nextCell.x];
+      const startCellHeight: number = heightMap[y * width + x];
+      const nextCellHeight: number = heightMap[nextCell.y * width + nextCell.x];
 
       // max. sediment capacity = volume * |speed| * (h(ipos) - h(floor(pos)))
       let capacity: number =
@@ -156,7 +214,7 @@ export class PBErosion {
 
       // Update sediment and terrain at original integer cell
       droplet.sediment += timeStep * this.params.depositionRate * capacityDelta;
-      heights[y * width + x] -= timeStep * droplet.volume * this.params.depositionRate * capacityDelta;
+      heightMap[y * width + x] -= timeStep * droplet.volume * this.params.depositionRate * capacityDelta;
 
       // Evaporate (proportional to volume)
       droplet.volume *= (1.0 - timeStep * this.params.evaporationRate);
@@ -169,7 +227,7 @@ export class PBErosion {
    * The resulting normal is not normalized, as its magnitude encodes slope strength.
    */
   private surfaceNormal(
-    heights: Float32Array,
+    heightMap: Float32Array,
     width: number,
     height: number,
     i: number,
@@ -179,14 +237,14 @@ export class PBErosion {
     // Require interior cells to avoid bounds branching each sample
     if (i <= 0 || i >= width - 1 || j <= 0 || j >= height - 1) {
       // Fallback: central-difference normal
-      return this.centralDiffNormal(heights, width, height, i, j, verticalScale);
+      return this.centralDiffNormal(heightMap, width, height, i, j, verticalScale);
     }
 
     // Helper to compute 1D index
     const idx: (x: number, y: number) => number
       = (x: number, y: number) => y * width + x;
 
-    const h00 = heights[idx(i, j)];
+    const h00 = heightMap[idx(i, j)];
     //  ┌─────┬─────┬─────┐
     //  │ hnn │ hny │ hpn │
     //  ├─────┼─────┼─────┤
@@ -196,15 +254,15 @@ export class PBErosion {
     //  └─────┴─────┴─────┘
 
     // Cardinals
-    const hpx = heights[idx(i + 1, j)];
-    const hnx = heights[idx(i - 1, j)];
-    const hpy = heights[idx(i, j + 1)];
-    const hny = heights[idx(i, j - 1)];
+    const hpx = heightMap[idx(i + 1, j)];
+    const hnx = heightMap[idx(i - 1, j)];
+    const hpy = heightMap[idx(i, j + 1)];
+    const hny = heightMap[idx(i, j - 1)];
     // Diagonals
-    const hpp = heights[idx(i + 1, j + 1)];
-    const hpn = heights[idx(i + 1, j - 1)];
-    const hnp = heights[idx(i - 1, j + 1)];
-    const hnn = heights[idx(i - 1, j - 1)];
+    const hpp = heightMap[idx(i + 1, j + 1)];
+    const hpn = heightMap[idx(i + 1, j - 1)];
+    const hnp = heightMap[idx(i - 1, j + 1)];
+    const hnn = heightMap[idx(i - 1, j - 1)];
 
     const cardinalWeight = 0.15;
     const diagonalWeight = 0.10;
@@ -287,7 +345,7 @@ export class PBErosion {
   }
 
   private centralDiffNormal(
-    heights: Float32Array,
+    heightMap: Float32Array,
     width: number,
     height: number,
     i: number,
@@ -300,10 +358,10 @@ export class PBErosion {
     const idx = (x: number, y: number) => y * width + x;
 
     const dzdx =
-      ((heights[idx(ix0 + 1, jy0)] - heights[idx(ix0 - 1, jy0)]) * 0.5) *
+      ((heightMap[idx(ix0 + 1, jy0)] - heightMap[idx(ix0 - 1, jy0)]) * 0.5) *
       verticalScale;
     const dzdy =
-      ((heights[idx(ix0, jy0 + 1)] - heights[idx(ix0, jy0 - 1)]) * 0.5) *
+      ((heightMap[idx(ix0, jy0 + 1)] - heightMap[idx(ix0, jy0 - 1)]) * 0.5) *
       verticalScale;
 
     // Normal to the heightfield z = h(x,y) is (-dz/dx, 1, -dz/dy)
