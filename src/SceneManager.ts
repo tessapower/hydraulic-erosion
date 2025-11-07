@@ -24,7 +24,7 @@ export class SceneManager {
   private static readonly RANDOM_SEED: number = 42;
 
   // Colors and fog settings
-  private static readonly BACKGROUND_COLOR: THREE.Color = new THREE.Color(0x776b4c);
+  private static readonly BACKGROUND_COLOR: THREE.Color = new THREE.Color(0x8b8479);
   private static readonly FOG_NEAR: number = 675;
   private static readonly FOG_FAR: number = 850;
   private static readonly CAMERA_NEAR: number = -800;
