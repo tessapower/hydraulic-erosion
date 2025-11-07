@@ -1,3 +1,12 @@
+varying vec3 vViewPosition;
+
+// Fog uniforms (Three.js provides these when fog: true)
+#ifdef USE_FOG
+uniform vec3 fogColor;
+uniform float fogNear;
+uniform float fogFar;
+#endif
+
 uniform vec3 u_flatColor;
 uniform vec3 u_steepColor;
 uniform float u_steepness;
@@ -38,4 +47,11 @@ void main() {
     finalColor *= ao;
 
     gl_FragColor = vec4(finalColor, 1.0);
+
+    // Manual fog calculation
+    #ifdef USE_FOG
+    float depth = length(vViewPosition);
+    float fogFactor = smoothstep(fogNear, fogFar, depth);
+    gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, fogFactor);
+    #endif
 }
