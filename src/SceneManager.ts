@@ -110,7 +110,7 @@ export class SceneManager {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, SceneManager.MAX_PIXEL_RATIO));
     // Disable shadows, we handle lighting in the shader
     this.renderer.shadowMap.enabled = false;
-    this.renderer.toneMapping = THREE.NoToneMapping
+    this.renderer.toneMapping = THREE.NoToneMapping;
 
     // Background color
     this.scene.background = SceneManager.BACKGROUND_COLOR;
