@@ -19,35 +19,47 @@ import type {IErosionModel} from "./erosion/IErosionModel";
  */
 export class SceneManager {
   // Landscape settings
-  private static readonly TERRAIN_SIZE = 256;
-  private static readonly TERRAIN_RESOLUTION = 256;
-  private static readonly RANDOM_SEED = 42;
+  private static readonly TERRAIN_SIZE: number = 256;
+  private static readonly TERRAIN_RESOLUTION: number = 256;
+  private static readonly RANDOM_SEED: number = 42;
 
   // Colors and fog settings
-  private static readonly BACKGROUND_COLOR = new THREE.Color(0xb8a693);
-  private static readonly FOG_NEAR: number = 700;
-  private static readonly FOG_FAR: number = 900;
+  private static readonly BACKGROUND_COLOR: THREE.Color = new THREE.Color(0x8b8479);
+  private static readonly FOG_NEAR: number = 675;
+  private static readonly FOG_FAR: number = 850;
   private static readonly CAMERA_NEAR: number = -800;
   private static readonly CAMERA_FAR: number = 800;
   private static readonly CAMERA_POS: THREE.Vector3 = new THREE.Vector3(400, 400, 400);
   private static readonly CAMERA_TARGET: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
+
+  // Camera Constants
+  private static readonly FRUSTUM_SIZE: number = SceneManager.TERRAIN_SIZE * 1.2;
+  private static readonly ZOOM_MIN: number = 0.2;
+  private static readonly ZOOM_MAX: number = 5.0;
+  // Sensitivity: smaller = slower zoom (tweak to taste)
+  private static readonly ZOOM_SENSITIVITY: number = 0.001;
+  private static readonly WHEEL_LINE_HEIGHT: number = 16;
+
+  // Renderer constants
+  private static readonly MAX_PIXEL_RATIO: number = 2;
+
   // Scene components
   private readonly canvas: HTMLCanvasElement;
+  private readonly camera: THREE.OrthographicCamera;
   private readonly scene: THREE.Scene;
   private renderer: THREE.WebGLRenderer;
   private animationId: number | null = null;
-  private readonly frustumSize: number = SceneManager.TERRAIN_SIZE * 1.2;
   private readonly landscape: Landscape;
   private readonly simulator: Simulator;
   private readonly guiManager: GuiManager;
-  // Camera
-  private readonly camera: THREE.OrthographicCamera;
   // Performance monitoring (only in debug mode)
   private stats?: Stats;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.scene = new THREE.Scene();
+
+    // Fog
     this.scene.fog = new THREE.Fog(
       SceneManager.BACKGROUND_COLOR,
       SceneManager.FOG_NEAR,
@@ -66,10 +78,7 @@ export class SceneManager {
 
     const aspect = window.innerWidth / window.innerHeight;
 
-    // How much of the terrain we want to fit in view (pad a bit beyond size)
-    this.frustumSize = SceneManager.TERRAIN_SIZE * 1.2;
-
-    const halfH = this.frustumSize / 2;
+    const halfH = SceneManager.FRUSTUM_SIZE / 2;
     const halfW = halfH * aspect;
 
     this.camera = new THREE.OrthographicCamera(
@@ -98,10 +107,13 @@ export class SceneManager {
 
     // Set up renderer
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, SceneManager.MAX_PIXEL_RATIO));
     // Disable shadows, we handle lighting in the shader
     this.renderer.shadowMap.enabled = false;
-    this.renderer.toneMapping = THREE.NoToneMapping
+    this.renderer.toneMapping = THREE.NoToneMapping;
+
+    // Background color
+    this.scene.background = SceneManager.BACKGROUND_COLOR;
 
     // Handle resize
     window.addEventListener("resize", this.handleResize);
@@ -135,7 +147,6 @@ export class SceneManager {
     // Create simulator to manage erosion process
     this.simulator = new Simulator(this.landscape, physicsBased);
 
-    this.scene.background = SceneManager.BACKGROUND_COLOR;
     this.scene.add(this.landscape.getMesh());
 
     // Setup GUI
@@ -189,7 +200,7 @@ export class SceneManager {
   private handleResize = (): void => {
     const aspect = window.innerWidth / window.innerHeight;
 
-    const halfH = this.frustumSize / 2;
+    const halfH = SceneManager.FRUSTUM_SIZE / 2;
     const halfW = halfH * aspect;
 
     this.camera.left = -halfW;
@@ -207,15 +218,11 @@ export class SceneManager {
     e.preventDefault();
 
     // Normalize delta (DOM_DELTA_LINE ≈ lines, DOM_DELTA_PIXEL ≈ pixels)
-    const lineHeight = 16;
-    const delta = e.deltaMode === 1 ? e.deltaY * lineHeight : e.deltaY;
-
-    // Sensitivity: smaller = slower zoom (tweak to taste)
-    const sensitivity = 0.0015;
+    const delta = e.deltaMode === 1 ? e.deltaY * SceneManager.WHEEL_LINE_HEIGHT : e.deltaY;
 
     // Multiply zoom for smooth exponential feel
-    const nextZoom = this.camera.zoom * (1 - delta * sensitivity);
-    this.camera.zoom = THREE.MathUtils.clamp(nextZoom, 0.2, 5.0);
+    const nextZoom = this.camera.zoom * (1 - delta * SceneManager.ZOOM_SENSITIVITY);
+    this.camera.zoom = THREE.MathUtils.clamp(nextZoom, SceneManager.ZOOM_MIN, SceneManager.ZOOM_MAX);
     this.camera.updateProjectionMatrix();
   };
 }

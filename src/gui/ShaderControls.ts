@@ -21,11 +21,11 @@ export class ShaderControls implements IGuiModule {
 
     folder.addColor(colors, "flatColor").onChange((value: number) => {
       this.material.uniforms.u_flatColor.value.setHex(value);
-    }).name("Grass Color");
+    }).name("Flat Color");
 
     folder.addColor(colors, "steepColor").onChange((value: number) => {
       this.material.uniforms.u_steepColor.value.setHex(value);
-    }).name("Rock Color");
+    }).name("Steep Color");
 
     folder
       .add(this.material.uniforms.u_steepness, "value", 0.0, 1.0, 0.05)
