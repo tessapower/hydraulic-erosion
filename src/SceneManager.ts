@@ -81,7 +81,6 @@ export class SceneManager {
       SceneManager.CAMERA_FAR,
     );
 
-// Set camera position and target similar to before
     this.camera.position.set(
       SceneManager.CAMERA_POS.x,
       SceneManager.CAMERA_POS.y,
