@@ -25,8 +25,8 @@ export class SceneManager {
 
   // Colors and fog settings
   private static readonly BACKGROUND_COLOR: THREE.Color = new THREE.Color(0x776b4c);
-  private static readonly FOG_NEAR: number = 725;
-  private static readonly FOG_FAR: number = 900;
+  private static readonly FOG_NEAR: number = 675;
+  private static readonly FOG_FAR: number = 850;
   private static readonly CAMERA_NEAR: number = -800;
   private static readonly CAMERA_FAR: number = 800;
   private static readonly CAMERA_POS: THREE.Vector3 = new THREE.Vector3(400, 400, 400);
