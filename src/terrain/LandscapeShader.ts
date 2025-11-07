@@ -8,9 +8,9 @@ export function createLandscapeShader(): THREE.ShaderMaterial {
       THREE.UniformsLib.fog, // Automatically includes fogColor, fogNear, fogFar
       {
         // Color based on slope
-        u_flatColor: {value: new THREE.Color(0xffffff)},  // Grass green
-        u_steepColor: {value: new THREE.Color(0xb5b3b0)}, // Dirt brown
-        u_steepness: {value: 0.6},                                 // Threshold
+        u_flatColor: {value: new THREE.Color(0xffffff)},
+        u_steepColor: {value: new THREE.Color(0xb5b3b0)},
+        u_steepness: {value: 0.6}, // Threshold
         // Lighting
         u_lightDirection: {value: new THREE.Vector3(1, 1, 1).normalize()},
         u_lightColor: {value: new THREE.Color(1.0, 1.0, 0.9)},
