@@ -194,23 +194,6 @@ export class SceneManager {
 
     this.stats?.end();
 
-    // Debug ONCE after first render
-    if (this.animationId === null) {
-      const material = this.landscape.getShader();
-      console.log('=== After First Render ===');
-      console.log('Material defines:', material.defines);
-      console.log('Vertex shader (first 500 chars):', material.vertexShader.substring(0, 500));
-      console.log('Fragment shader (first 500 chars):', material.fragmentShader.substring(0, 500));
-
-      // Check for lights
-      const lights = this.scene.children.filter(c =>
-        c instanceof THREE.DirectionalLight && c.castShadow
-      );
-
-      console.log('Shadow-casting lights:', lights.length);
-      console.log('Terrain receiveShadow:', this.landscape.getMesh().receiveShadow);
-    }
-
     this.animationId = requestAnimationFrame(this.animate);
   };
 
