@@ -6,7 +6,6 @@ export class Simulator {
   private landscape: Landscape;
   private erosionModel: IErosionModel;
   private isRunning: boolean = false;
-  private iterationsPerFrame: number = 500;
   private iterationsCompleted: number = 0;
 
   constructor(landscape: Landscape, erosion: IErosionModel) {
@@ -25,10 +24,6 @@ export class Simulator {
   reset(): void {
     this.iterationsCompleted = 0;
     this.landscape.regenerate();
-  }
-
-  setIterationsPerFrame(iterations: number): void {
-    this.iterationsPerFrame = Math.max(1, iterations);
   }
 
   update(): void {

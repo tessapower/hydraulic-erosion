@@ -88,19 +88,6 @@ export class SimulatorControls implements IGuiModule {
     // Set initial button states
     this.updateButtonStates();
 
-    // Speed control
-    const speedControl = {
-      speed: 100,
-    };
-
-    const speedController = erosionFolder
-      .add(speedControl, 'speed', 1, 1000, 10)
-      .name('Speed')
-      .onFinishChange((value: number) => {
-        this.simulator.setIterationsPerFrame(value);
-      });
-    speedController.domElement.title = 'Iterations per frame (higher = faster erosion)';
-
     // Max iterations control (common to all models)
     const maxIterations = {
       value: this.simulator.getTotalIterations(),
