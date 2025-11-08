@@ -115,8 +115,10 @@ export class SimulatorControls implements IGuiModule {
 
     this.simulator.registerOnResetCallback(() => {
       // Re-enable the parameters when the simulation is reset
-      this.iterationsControl.enable();
-      this.modelSelector.enable();
+      if (!this.simulator.getIsRunning()) {
+        this.iterationsControl.enable();
+        this.modelSelector.enable();
+      }
     });
 
     this.setupModelSelector();
@@ -208,7 +210,7 @@ export class SimulatorControls implements IGuiModule {
       this.pauseButton.disable();
       // Only enable reset when complete
       this.resetButton.enable();
-    } else if (isRunning && !isComplete) {
+    } else if (isRunning) {
       this.startButton.disable();
       this.pauseButton.enable();
       this.resetButton.enable();

@@ -202,7 +202,7 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
 
     simulator.registerOnResetCallback(() => {
       // Re-enable the parameters when the simulation is reset
-      this.paramsControllers.forEach(controller => controller.enable());
+      this.paramsControllers.forEach(controller => controller.enable(!simulator.getIsRunning()));
     });
   }
 
