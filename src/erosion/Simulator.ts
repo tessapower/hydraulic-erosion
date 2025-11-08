@@ -23,7 +23,7 @@ export class Simulator {
     this.onStart();
   }
 
-  stop(): void {
+  pause(): void {
     this.isRunning = false;
   }
 
@@ -125,6 +125,7 @@ export class Simulator {
   }
 
   onComplete(): void {
+    this.pause();
     for (const callback of this.onCompleteCallbacks) {
       callback();
     }

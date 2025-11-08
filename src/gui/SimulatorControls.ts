@@ -30,8 +30,8 @@ export class SimulatorControls implements IGuiModule {
       this.simulator.start();
       this.updateButtonStates();
     },
-    stop: () => {
-      this.simulator.stop();
+    pause: () => {
+      this.simulator.pause();
       this.updateButtonStates();
     },
     reset: () => {
@@ -64,8 +64,8 @@ export class SimulatorControls implements IGuiModule {
     // Create buttons for controlling the simulation
     this.startButton = this.erosionFolder.add(this.animationControls, 'start')
       .name('▶ Start Erosion');
-    this.pauseButton = this.erosionFolder.add(this.animationControls, 'stop')
-      .name('⏸ Stop Erosion');
+    this.pauseButton = this.erosionFolder.add(this.animationControls, 'pause')
+      .name('⏸ Pause Erosion');
     this.resetButton = this.erosionFolder.add(this.animationControls, 'reset')
       .name('🔄 Reset');
 
@@ -89,7 +89,7 @@ export class SimulatorControls implements IGuiModule {
       .name('# Iterations')
       .onFinishChange((value: number) => {
         this.simulator.getErosionModel().setIterations(value);
-        this.simulator.stop();
+        this.simulator.pause();
         this.simulator.reset();
         this.updateButtonStates();
       }).domElement.title = 'Maximum number of iterations to simulate';
