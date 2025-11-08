@@ -18,6 +18,8 @@ export class Landscape {
   private readonly segments: number;
   private readonly size: number;
 
+  private heightMap: Float32Array = new Float32Array();
+
   constructor(
     size: number = Landscape.DEFAULT_SIZE,
     resolution: number = Landscape.DEFAULT_RESOLUTION,
@@ -31,23 +33,6 @@ export class Landscape {
     // Create initial terrain
     this.mesh = createPlaneMesh(this.size, this.segments, this.shader);
     this.generateHeights();
-  }
-
-  private generateHeights(): void {
-    const heightMap = this.generator.generateHeightMap();
-
-    this.applyHeightMap(heightMap);
-  }
-
-  private applyHeightMap(heightMap: Float32Array): void {
-    const vertices = this.mesh.geometry.attributes.position;
-
-    for (let i: number = 0; i < vertices.count; i++) {
-      vertices.setZ(i, heightMap[i]);
-    }
-
-    vertices.needsUpdate = true;
-    this.mesh.geometry.computeVertexNormals();
   }
 
   /**
@@ -83,14 +68,7 @@ export class Landscape {
    * Gets the current heightmap as a Float32Array
    */
   getHeightMap(): Float32Array {
-    const vertices = this.mesh.geometry.attributes.position;
-    const heightMap = new Float32Array(vertices.count);
-
-    for (let i: number = 0; i < vertices.count; i++) {
-      heightMap[i] = vertices.getZ(i);
-    }
-
-    return heightMap;
+    return this.heightMap;
   }
 
   /**
@@ -98,6 +76,11 @@ export class Landscape {
    */
   updateMesh(): void {
     const vertices = this.mesh.geometry.attributes.position;
+
+    // Apply heightmap to mesh
+    for (let i = 0; i < vertices.count; i++) {
+      vertices.setZ(i, this.heightMap[i]);
+    }
     vertices.needsUpdate = true;
     this.mesh.geometry.computeVertexNormals();
   }
@@ -108,5 +91,10 @@ export class Landscape {
   dispose(): void {
     this.mesh.geometry.dispose();
     this.shader.dispose();
+  }
+
+  private generateHeights(): void {
+    this.heightMap = this.generator.generateHeightMap();
+    this.updateMesh();
   }
 }
