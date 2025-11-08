@@ -3,11 +3,12 @@ import {Landscape} from "../terrain/Landscape";
 import type {IErosionModel} from "./IErosionModel";
 
 export class Simulator {
+  private static readonly TIME_BUDGET: number = 16;
   private landscape: Landscape;
   private erosionModel: IErosionModel;
   private isRunning: boolean = false;
-  private iterationsPerFrame: number = 500;
   private iterationsCompleted: number = 0;
+  private updateStart: number = 0;
 
   constructor(landscape: Landscape, erosion: IErosionModel) {
     this.landscape = landscape;
@@ -27,55 +28,36 @@ export class Simulator {
     this.landscape.regenerate();
   }
 
-  setIterationsPerFrame(iterations: number): void {
-    this.iterationsPerFrame = Math.max(1, iterations);
-  }
-
   update(): void {
     if (!this.isRunning) return;
-
-    // Check if we've reached the maximum iterations
-    const maxIterations = this.erosionModel.getIterations();
-    if (this.iterationsCompleted >= maxIterations) {
-      this.stop();
-      console.log(`Erosion complete: ${this.iterationsCompleted} droplets simulated`);
-
-      return;
-    }
 
     const heightMap = this.landscape.getHeightMap();
     // Since this is a square heightmap, width === height
     const size = Math.sqrt(heightMap.length);
 
-    // Run multiple erosion iterations per frame, but don't exceed max
-    const iterationsToRun = Math.min(
-      this.iterationsPerFrame,
-      maxIterations - this.iterationsCompleted
-    );
-
-    // Apply changes every N droplets
-    const APPLY_EVERY = 10;
-    for (let i = 0; i < iterationsToRun; i++) {
-      this.erosionModel.simulateStep(heightMap, size, size);
-      this.iterationsCompleted++;
-
-      if (i % APPLY_EVERY === 0) {
-        // Apply changes to heightmap, changeMap will be reset in this method
-        this.erosionModel.applyChanges(heightMap, size, size);
-      }
-    }
-
-    // Apply accumulated changes to heightmap
-    this.erosionModel.applyChanges(heightMap, size, size);
-
-    // Apply heightmap back to landscape
-    const vertices = this.landscape.getMesh().geometry.attributes.position;
-    for (let i = 0; i < vertices.count; i++) {
-      vertices.setZ(i, heightMap[i]);
+    // Apply changes to heightmap, if the model uses one
+    if (this.erosionModel.usesChangeMap) {
+      this.erosionModel.applyChanges(heightMap, size, size);
     }
 
     // Update the mesh to reflect changes
     this.landscape.updateMesh();
+    const updateEnd = performance.now();
+
+    // Check if we've reached the maximum iterations
+    const maxIterations = this.erosionModel.getIterations();
+
+    // Run erosion until we hit the time budget or complete the required
+    // iterations. Ensure we always run at least one iteration to avoid
+    // stalling on the first update.
+    const timeAllowance: number = Math.max(1, Simulator.TIME_BUDGET - (updateEnd - this.updateStart));
+    while (this.iterationsCompleted < maxIterations && (performance.now() - updateEnd) < timeAllowance) {
+      this.erosionModel.simulateStep(heightMap, size, size);
+      this.iterationsCompleted++;
+    }
+
+    if (this.isComplete()) this.stop();
+    this.updateStart = performance.now();
   }
 
   getErosionModel(): IErosionModel {

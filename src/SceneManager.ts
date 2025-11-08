@@ -7,7 +7,7 @@ import {BeyerErosion} from "./erosion/BeyerErosion";
 import {PBErosion} from "./erosion/PBErosion";
 import {GuiManager} from "./gui/GuiManager";
 import {LandscapeControls} from "./gui/LandscapeControls";
-import {ErosionControls} from "./gui/ErosionControls";
+import {SimulatorControls} from "./gui/SimulatorControls.ts";
 import {ShaderControls} from "./gui/ShaderControls";
 import {Simulator} from "./erosion/Simulator";
 import Stats from "stats.js";
@@ -73,7 +73,7 @@ export class SceneManager {
       this.stats.dom.style.position = "absolute";
       this.stats.dom.style.top = "1px";
       this.stats.dom.style.left = "1px";
-      this.stats.showPanel(1); // 0: fps, 1: ms, 2: mb, 3+: custom
+      this.stats.showPanel(1); // 0: fps, 1: ms, 2: mb
     }
 
     const aspect = window.innerWidth / window.innerHeight;
@@ -159,7 +159,7 @@ export class SceneManager {
       new LandscapeControls(this.landscape));
 
     this.guiManager.register("erosion",
-      new ErosionControls(this.simulator,
+      new SimulatorControls(this.simulator,
         new Map<string, IErosionModel>([
           ["Physics Based", physicsBased],
           ["Beyer", beyer],

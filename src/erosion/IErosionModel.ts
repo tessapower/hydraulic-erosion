@@ -5,6 +5,8 @@
  * Core interface for erosion models.
  */
 export interface IErosionModel {
+  readonly usesChangeMap: boolean;
+
   /**
    * Get the display name for this erosion model
    */
