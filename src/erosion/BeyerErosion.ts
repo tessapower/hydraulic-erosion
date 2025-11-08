@@ -83,7 +83,7 @@ export interface IErosionParams {
 export class BeyerErosion implements IErosionModel, IErosionControls {
   // Default parameters from Beyer's paper
   static readonly DEFAULT_PARAMS: IErosionParams = {
-    iterations: 200000,
+    iterations: 200_000,
     inertia: 0.05,
     capacity: 6,
     minSlope: 0.01,

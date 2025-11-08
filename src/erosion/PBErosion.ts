@@ -46,7 +46,7 @@ export interface IErosionParams {
 
 export class PBErosion implements IErosionModel, IErosionControls {
   static readonly DEFAULTS: IErosionParams = {
-    iterations: 200000,
+    iterations: 200_000,
     dt: 1.2,
     density: 1.0,
     evaporationRate: 0.001,
