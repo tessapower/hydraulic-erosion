@@ -73,7 +73,7 @@ export class SceneManager {
       this.stats.dom.style.position = "absolute";
       this.stats.dom.style.top = "1px";
       this.stats.dom.style.left = "1px";
-      this.stats.showPanel(1); // 0: fps, 1: ms, 2: mb, 3+: custom
+      this.stats.showPanel(1); // 0: fps, 1: ms, 2: mb
     }
 
     const aspect = window.innerWidth / window.innerHeight;

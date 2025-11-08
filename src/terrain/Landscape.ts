@@ -2,8 +2,8 @@
 
 import * as THREE from "three";
 import LandscapeGenerator from "./LandscapeGenerator";
-import { createPlaneMesh } from "./Plane";
-import { createLandscapeShader } from "./LandscapeShader";
+import {createPlaneMesh} from "./Plane";
+import {createLandscapeShader} from "./LandscapeShader";
 
 /**
  * Manages landscape mesh creation, shader material, and height generation.
