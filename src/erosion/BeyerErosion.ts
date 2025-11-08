@@ -9,7 +9,8 @@ import * as THREE from "three";
 import {type RandomFn} from "../utils/Random";
 import type {IErosionModel} from "./IErosionModel";
 import type {IErosionControls} from "../gui/IErosionControls";
-import type GUI from "lil-gui";
+import GUI, {Controller} from "lil-gui";
+import type {Simulator} from "./Simulator.ts";
 
 /**
  * Parameters for Beyer's hydraulic erosion simulation.
@@ -129,62 +130,80 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
   private changeMap: Float32Array | null = null;
   private changeMapWidth: number = 0;
   private changeMapHeight: number = 0;
+  private paramsControllers: Array<Controller> = [];
 
   constructor(params: Partial<IErosionParams> = {}) {
     this.params = {...BeyerErosion.DEFAULT_PARAMS, ...params};
   }
 
   //======================================== IErosionControls Interface ====//
-  setupControls(gui: GUI, onParameterChange?: () => void): void {
-    gui.add(this.params, 'maxPath', 16, 128, 1)
+  setupControls(gui: GUI, simulator: Simulator, onParameterChange?: () => void): void {
+    const maxPath = gui.add(this.params, 'maxPath', 16, 128, 1)
       .onFinishChange(() => onParameterChange?.())
-      .name('Droplet Lifetime')
-      .domElement.title = 'Maximum length of droplet lifetime (higher = more erosion per droplet)';
+      .name('Droplet Lifetime');
+    maxPath.domElement.title = 'Maximum length of droplet lifetime (higher = more erosion per droplet)';
 
-    gui.add(this.params, 'inertia', 0, 1, 0.1)
+    const inertia = gui.add(this.params, 'inertia', 0, 1, 0.1)
       .onFinishChange(() => onParameterChange?.())
-      .name('Inertia')
-      .domElement.title = 'How much droplets maintain their direction (0 = follow slope exactly, 1 = ignore slope)';
+      .name('Inertia');
+    inertia.domElement.title = 'How much droplets maintain their direction (0 = follow slope exactly, 1 = ignore slope)';
 
-    gui.add(this.params, 'capacity', 1, 32, 1)
+    const capacity = gui.add(this.params, 'capacity', 1, 32, 1)
       .onFinishChange(() => onParameterChange?.())
-      .name('Sediment Capacity')
-      .domElement.title = 'Multiplier for how much sediment a droplet can carry';
+      .name('Sediment Capacity');
+    capacity.domElement.title = 'Multiplier for how much sediment a droplet can carry';
 
-    gui.add(this.params, 'minSlope', 0.001, 0.02, 0.001)
+    const minSlope = gui.add(this.params, 'minSlope', 0.001, 0.02, 0.001)
       .onFinishChange(() => onParameterChange?.())
-      .name('Min Slope')
-      .domElement.title = 'Minimum slope used in sediment capacity calculation';
+      .name('Min Slope');
+    minSlope.domElement.title = 'Minimum slope used in sediment capacity calculation';
 
-    gui.add(this.params, 'erosionSpeed', 0.01, 1, 0.01)
+    const erosionSpeed = gui.add(this.params, 'erosionSpeed', 0.01, 1, 0.01)
       .onFinishChange(() => onParameterChange?.())
-      .name('Erosion Speed')
-      .domElement.title = 'How quickly terrain is eroded (0.01 = minimum, 1 = maximum)';
+      .name('Erosion Speed');
+    erosionSpeed.domElement.title = 'How quickly terrain is eroded (0.01 = minimum, 1 = maximum)';
 
-    gui.add(this.params, 'depositionSpeed', 0, 1, 0.01)
+    const depositionSpeed = gui.add(this.params, 'depositionSpeed', 0, 1, 0.01)
       .onFinishChange(() => onParameterChange?.())
-      .name('Deposition Speed')
-      .domElement.title = 'How quickly sediment is deposited (0 = no deposition, 1 = maximum)';
+      .name('Deposition Speed');
+    depositionSpeed.domElement.title = 'How quickly sediment is deposited (0 = no deposition, 1 = maximum)';
 
-    gui.add(this.params, 'evaporationSpeed', 0, 0.1, 0.01)
+    const evaporationSpeed = gui.add(this.params, 'evaporationSpeed', 0, 0.1, 0.01)
       .onFinishChange(() => onParameterChange?.())
-      .name('Evaporation Speed')
-      .domElement.title = 'How quickly water evaporates from droplets (higher = shorter droplet lifetime)';
+      .name('Evaporation Speed');
+    evaporationSpeed.domElement.title = 'How quickly water evaporates from droplets (higher = shorter droplet lifetime)';
 
-    gui.add(this.params, 'gravity', 1, 32, 1)
+    const gravity = gui.add(this.params, 'gravity', 1, 32, 1)
       .onFinishChange(() => onParameterChange?.())
-      .name('Gravity')
-      .domElement.title = 'Gravity acceleration factor affecting droplet velocity';
+      .name('Gravity');
+    gravity.domElement.title = 'Gravity acceleration factor affecting droplet velocity';
 
-    gui.add(this.params, 'erosionRadius', 1, 16, 1)
+    const erosionRadius = gui.add(this.params, 'erosionRadius', 1, 16, 1)
       .onFinishChange(() => onParameterChange?.())
-      .name('Erosion Radius')
-      .domElement.title = 'Radius of terrain affected when eroding (larger = smoother erosion)';
+      .name('Erosion Radius');
+    erosionRadius.domElement.title = 'Radius of terrain affected when eroding (larger = smoother erosion)';
 
-    gui.add(this.params, 'depositionRadius', 1, 16, 1)
+    const deposition = gui.add(this.params, 'depositionRadius', 1, 16, 1)
       .onFinishChange(() => onParameterChange?.())
-      .name('Deposition Radius')
-      .domElement.title = 'Radius of terrain affected when depositing sediment (larger = smoother deposits)';
+      .name('Deposition Radius');
+    deposition.domElement.title = 'Radius of terrain affected when depositing sediment (larger = smoother deposits)';
+
+    this.paramsControllers.push(maxPath, inertia, capacity, minSlope, erosionSpeed, depositionSpeed, evaporationSpeed, gravity, erosionRadius, deposition);
+
+    simulator.registerOnStartCallback(() => {
+      // Disable adjusting the parameters when the simulation is running
+      this.paramsControllers.forEach(controller => controller.disable());
+    });
+
+    simulator.registerOnCompleteCallback(() => {
+      // Enable adjusting the parameters when the simulation is complete
+      this.paramsControllers.forEach(controller => controller.enable());
+    });
+
+    simulator.registerOnResetCallback(() => {
+      // Re-enable the parameters when the simulation is reset
+      this.paramsControllers.forEach(controller => controller.enable());
+    });
   }
 
   getControlsFolderName(): string {

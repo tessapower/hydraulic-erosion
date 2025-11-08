@@ -21,6 +21,11 @@ export class SimulatorControls implements IGuiModule {
   private startButton: Controller = null!;
   private pauseButton: Controller = null!;
   private resetButton: Controller = null!;
+  // References to controls that will be dynamically enabled/disabled
+  // based on simulation state
+  private iterationsControl: Controller = null!;
+  private modelSelector: Controller = null!
+
   // generated based on the selected model
   private erosionModelParams?: GUI;
   private modelsRegistry: Map<string, IErosionModel>;
@@ -81,7 +86,7 @@ export class SimulatorControls implements IGuiModule {
       value: this.simulator.getTotalIterations(),
     };
 
-    this.erosionFolder
+    this.iterationsControl = this.erosionFolder
       .add(maxIterations, 'value',
         SimulatorControls.MIN_ITERATIONS,
         SimulatorControls.MAX_ITERATIONS,
@@ -92,11 +97,27 @@ export class SimulatorControls implements IGuiModule {
         this.simulator.pause();
         this.simulator.reset();
         this.updateButtonStates();
-      }).domElement.title = 'Maximum number of iterations to simulate';
+      })
+
+    this.iterationsControl.domElement.title = 'Maximum number of iterations to simulate';
+
+    this.simulator.registerOnStartCallback(() => {
+      // Disable adjusting the parameters when the simulation is running
+      this.iterationsControl.enable(false);
+      this.modelSelector.enable(false);
+    });
 
     // Set up a callback to update button states when the simulation completes
     this.simulator.registerOnCompleteCallback(() => {
-      this.updateButtonStates();
+      // Enable adjusting the parameters when the simulation is complete
+      this.iterationsControl.enable();
+      this.modelSelector.enable();
+    });
+
+    this.simulator.registerOnResetCallback(() => {
+      // Re-enable the parameters when the simulation is reset
+      this.iterationsControl.enable();
+      this.modelSelector.enable();
     });
 
     this.setupModelSelector();
@@ -115,7 +136,7 @@ export class SimulatorControls implements IGuiModule {
       model: currentModel.getName(),
     };
 
-    this.erosionFolder
+    this.modelSelector = this.erosionFolder
       .add(selector, 'model', modelNames)
       .name('Erosion Model')
       .onFinishChange((modelName: string) => {
@@ -132,6 +153,8 @@ export class SimulatorControls implements IGuiModule {
           this.setupModelParams();
         }
       });
+
+    this.modelSelector.domElement.title = 'Select the erosion model to use for the simulation';
   }
 
   private readonly updateStatus = (): void => {
@@ -162,12 +185,11 @@ export class SimulatorControls implements IGuiModule {
       this.erosionModelParams = this.erosionFolder.addFolder(model.getControlsFolderName());
 
       // Let the model setup its own controls
-      (model as IErosionControls).setupControls(this.erosionModelParams, () => {
-        // Callback when parameters change
-        this.simulator.stop();
-        this.simulator.reset();
-        this.updateButtonStates();
-      });
+      (model as IErosionControls).setupControls(this.erosionModelParams, this.simulator,
+        () => {
+          // Callback when parameters change
+          this.updateButtonStates();
+        });
     }
   }
 
