@@ -11,7 +11,7 @@ import {SimulatorControls} from "./gui/SimulatorControls";
 import {Simulator} from "./erosion/Simulator";
 import Stats from "stats.js";
 import type {IErosionModel} from "./erosion/IErosionModel";
-import {ShaderControls} from "./gui/ShaderControls.ts";
+import {ShaderControls} from "./gui/ShaderControls";
 
 /**
  * Orchestrates the Three.js scene, including terrain, lighting, camera,

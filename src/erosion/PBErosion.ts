@@ -11,7 +11,7 @@ import {type RandomFn} from "../utils/Random";
 import type {IErosionControls} from "../gui/IErosionControls";
 import type {IErosionModel} from "./IErosionModel";
 import GUI, {type Controller} from "lil-gui";
-import type {Simulator} from "./Simulator.ts";
+import type {Simulator} from "./Simulator";
 
 /**
  * Parameters for the physics-based erosion simulation.

@@ -98,23 +98,14 @@ export class Simulator {
   }
 
   registerOnStartCallback(callback: () => void): void {
-    if (!this.onStartCallbacks) {
-      this.onStartCallbacks = [];
-    }
     this.onStartCallbacks.push(callback);
   }
 
   registerOnCompleteCallback(callback: () => void): void {
-    if (!this.onCompleteCallbacks) {
-      this.onCompleteCallbacks = [];
-    }
     this.onCompleteCallbacks.push(callback);
   }
 
   registerOnResetCallback(callback: () => void): void {
-    if (!this.onResetCallbacks) {
-      this.onResetCallbacks = [];
-    }
     this.onResetCallbacks.push(callback);
   }
 

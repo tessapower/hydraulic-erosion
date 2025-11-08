@@ -56,14 +56,14 @@ html, body {
     opacity: 0.5 !important;
 }
 
-/* Stop button styles */
-.erosion-stop-btn:not(:disabled) {
+/* Pause button styles */
+.erosion-pause-btn:not(:disabled) {
     background-color: #f65145 !important;
     color: white !important;
     opacity: 1 !important;
 }
 
-.erosion-stop-btn:disabled {
+.erosion-pause-btn:disabled {
     background-color: transparent !important;
     opacity: 0.5 !important;
 }

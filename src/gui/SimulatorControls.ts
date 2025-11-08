@@ -14,7 +14,7 @@ export class SimulatorControls implements IGuiModule {
   private static readonly MIN_ITERATIONS = 1000;
   private static readonly MAX_ITERATIONS = 1_000_000;
   private static readonly ITERATIONS_STEP = 1000;
-  private simulator: Simulator;
+  private readonly simulator: Simulator;
   private erosionFolder: GUI = null!;
   // Folder for model-specific parameters, which will be dynamically
   // Buttons for controlling the simulation
@@ -62,8 +62,7 @@ export class SimulatorControls implements IGuiModule {
     this.erosionFolder.add(this.statusObj, 'progress')
       .name('Progress')
       .listen().disable();
-
-    // Update status in animation loop
+    
     this.updateStatus();
 
     // Create buttons for controlling the simulation
@@ -97,7 +96,7 @@ export class SimulatorControls implements IGuiModule {
         this.simulator.pause();
         this.simulator.reset();
         this.updateButtonStates();
-      })
+      });
 
     this.iterationsControl.domElement.title = 'Maximum number of iterations to simulate';
 

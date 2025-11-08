@@ -10,7 +10,7 @@ import {type RandomFn} from "../utils/Random";
 import type {IErosionModel} from "./IErosionModel";
 import type {IErosionControls} from "../gui/IErosionControls";
 import GUI, {Controller} from "lil-gui";
-import type {Simulator} from "./Simulator.ts";
+import type {Simulator} from "./Simulator";
 
 /**
  * Parameters for Beyer's hydraulic erosion simulation.
