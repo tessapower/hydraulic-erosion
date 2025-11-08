@@ -105,6 +105,11 @@ export class SimulatorControls implements IGuiModule {
 
     // Setup model-specific controls
     this.setupModelControls(erosionFolder);
+    // Set up a callback to update button states when the simulation completes
+    this.simulator.registerOnCompleteCallback(() => {
+      this.updateButtonStates();
+    });
+
   }
 
   getModuleName(): string {

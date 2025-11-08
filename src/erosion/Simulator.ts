@@ -9,6 +9,7 @@ export class Simulator {
   private isRunning: boolean = false;
   private iterationsCompleted: number = 0;
   private updateStart: number = 0;
+  private onCompleteCallbacks: (() => void)[] = [];
 
   constructor(landscape: Landscape, erosion: IErosionModel) {
     this.landscape = landscape;
@@ -56,7 +57,10 @@ export class Simulator {
       this.iterationsCompleted++;
     }
 
-    if (this.isComplete()) this.stop();
+    if (this.isComplete()) {
+      this.stop();
+      this.onComplete();
+    }
     this.updateStart = performance.now();
   }
 
@@ -90,5 +94,18 @@ export class Simulator {
 
   getIsRunning(): boolean {
     return this.isRunning;
+  }
+
+  registerOnCompleteCallback(callback: () => void): void {
+    if (!this.onCompleteCallbacks) {
+      this.onCompleteCallbacks = [];
+    }
+    this.onCompleteCallbacks.push(callback);
+  }
+
+  onComplete(): void {
+    for (const callback of this.onCompleteCallbacks) {
+      callback();
+    }
   }
 }
