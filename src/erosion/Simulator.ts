@@ -9,6 +9,9 @@ export class Simulator {
   private isRunning: boolean = false;
   private iterationsCompleted: number = 0;
   private updateStart: number = 0;
+  private onStartCallbacks: (() => void)[] = [];
+  private onCompleteCallbacks: (() => void)[] = [];
+  private onResetCallbacks: (() => void)[] = [];
 
   constructor(landscape: Landscape, erosion: IErosionModel) {
     this.landscape = landscape;
@@ -17,15 +20,17 @@ export class Simulator {
 
   start(): void {
     this.isRunning = true;
+    this.onStart();
   }
 
-  stop(): void {
+  pause(): void {
     this.isRunning = false;
   }
 
   reset(): void {
     this.iterationsCompleted = 0;
     this.landscape.regenerate();
+    this.onReset();
   }
 
   update(): void {
@@ -56,7 +61,7 @@ export class Simulator {
       this.iterationsCompleted++;
     }
 
-    if (this.isComplete()) this.stop();
+    if (this.isComplete()) this.onComplete();
     this.updateStart = performance.now();
   }
 
@@ -90,5 +95,36 @@ export class Simulator {
 
   getIsRunning(): boolean {
     return this.isRunning;
+  }
+
+  registerOnStartCallback(callback: () => void): void {
+    this.onStartCallbacks.push(callback);
+  }
+
+  registerOnCompleteCallback(callback: () => void): void {
+    this.onCompleteCallbacks.push(callback);
+  }
+
+  registerOnResetCallback(callback: () => void): void {
+    this.onResetCallbacks.push(callback);
+  }
+
+  onStart(): void {
+    for (const callback of this.onStartCallbacks) {
+      callback();
+    }
+  }
+
+  onComplete(): void {
+    this.pause();
+    for (const callback of this.onCompleteCallbacks) {
+      callback();
+    }
+  }
+
+  onReset(): void {
+    for (const callback of this.onResetCallbacks) {
+      callback();
+    }
   }
 }

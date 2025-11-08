@@ -10,6 +10,7 @@ import type {IGuiModule} from "./GuiManager";
  */
 export class LandscapeControls implements IGuiModule {
   private landscape: Landscape;
+  private landscapeFolder: GUI = null!;
 
   private readonly controls = {
     terrainFrequency: {min: 0, max: 0.015, step: 0.001},
@@ -24,12 +25,11 @@ export class LandscapeControls implements IGuiModule {
     this.landscape = landscape;
   }
 
-  setupControls(gui: GUI): void {
+  registerParent(parentGui: GUI): void {
+    this.landscapeFolder = parentGui.addFolder(this.getModuleName());
+
     const generator = this.landscape.getGenerator();
-
-    const folder = gui.addFolder("Landscape Generation");
-
-    folder
+    this.landscapeFolder
       .add(
         generator,
         "terrainFrequency",
@@ -42,7 +42,7 @@ export class LandscapeControls implements IGuiModule {
         this.landscape.regenerate();
       }).domElement.title = "Frequency of base terrain noise (higher = more detailed features)";
 
-    folder
+    this.landscapeFolder
       .add(
         generator,
         "terrainAmplitude",
@@ -55,7 +55,7 @@ export class LandscapeControls implements IGuiModule {
         this.landscape.regenerate();
       }).domElement.title = "Height multiplier for terrain features (higher = taller mountains)";
 
-    folder
+    this.landscapeFolder
       .add(
         generator,
         "baseHeight",
@@ -68,7 +68,7 @@ export class LandscapeControls implements IGuiModule {
         this.landscape.regenerate();
       }).domElement.title = "Base elevation offset for the entire terrain";
 
-    folder
+    this.landscapeFolder
       .add(
         generator,
         "octaves",
@@ -81,7 +81,7 @@ export class LandscapeControls implements IGuiModule {
         this.landscape.regenerate();
       }).domElement.title = "Number of noise layers to combine (more = finer detail but slower)";
 
-    folder
+    this.landscapeFolder
       .add(
         generator,
         "persistence",
@@ -94,7 +94,7 @@ export class LandscapeControls implements IGuiModule {
         this.landscape.regenerate();
       }).domElement.title = "How much each octave contributes (higher = rougher terrain)";
 
-    folder
+    this.landscapeFolder
       .add(
         generator,
         "lacunarity",
@@ -113,14 +113,14 @@ export class LandscapeControls implements IGuiModule {
         this.landscape.regenerate();
       },
     };
-    const regenerateButton = folder.add(regenerateControl, "regenerate").name("Regenerate");
+    const regenerateButton = this.landscapeFolder.add(regenerateControl, "regenerate").name("Regenerate");
     regenerateButton.domElement.title = "Generate new terrain with current settings";
 
-    folder.close();
+    this.landscapeFolder.close();
   }
 
   getModuleName(): string {
-    return "Landscape";
+    return "Landscape Generation";
   }
 }
 

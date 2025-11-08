@@ -7,11 +7,11 @@ import {BeyerErosion} from "./erosion/BeyerErosion";
 import {PBErosion} from "./erosion/PBErosion";
 import {GuiManager} from "./gui/GuiManager";
 import {LandscapeControls} from "./gui/LandscapeControls";
-import {SimulatorControls} from "./gui/SimulatorControls.ts";
-import {ShaderControls} from "./gui/ShaderControls";
+import {SimulatorControls} from "./gui/SimulatorControls";
 import {Simulator} from "./erosion/Simulator";
 import Stats from "stats.js";
 import type {IErosionModel} from "./erosion/IErosionModel";
+import {ShaderControls} from "./gui/ShaderControls";
 
 /**
  * Orchestrates the Three.js scene, including terrain, lighting, camera,
@@ -151,12 +151,12 @@ export class SceneManager {
 
     // Setup GUI
     this.guiManager = new GuiManager();
+    this.guiManager.register("landscape",
+      new LandscapeControls(this.landscape));
+
     this.guiManager.register("shader",
       new ShaderControls(this.landscape.getShader())
     );
-
-    this.guiManager.register("landscape",
-      new LandscapeControls(this.landscape));
 
     this.guiManager.register("erosion",
       new SimulatorControls(this.simulator,

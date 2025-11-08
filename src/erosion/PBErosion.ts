@@ -10,7 +10,8 @@ import * as THREE from "three";
 import {type RandomFn} from "../utils/Random";
 import type {IErosionControls} from "../gui/IErosionControls";
 import type {IErosionModel} from "./IErosionModel";
-import GUI from "lil-gui";
+import GUI, {type Controller} from "lil-gui";
+import type {Simulator} from "./Simulator";
 
 /**
  * Parameters for the physics-based erosion simulation.
@@ -46,7 +47,7 @@ export interface IErosionParams {
 
 export class PBErosion implements IErosionModel, IErosionControls {
   static readonly DEFAULTS: IErosionParams = {
-    iterations: 200000,
+    iterations: 200_000,
     dt: 1.2,
     density: 1.0,
     evaporationRate: 0.001,
@@ -77,45 +78,68 @@ export class PBErosion implements IErosionModel, IErosionControls {
   public readonly params: IErosionParams;
   public readonly usesChangeMap: boolean = false;
 
+  private readonly paramsControllers: Array<Controller> = [];
+
   constructor(params: Partial<IErosionParams> = {}) {
     this.params = {...PBErosion.DEFAULTS, ...params};
   }
 
   //========================================== IErosionControls Interface ====//
-  setupControls(gui: GUI, onParameterChange?: () => void): void {
-    gui.add(this.params, 'dt', 0.1, 3.0, 0.1)
+  setupControls(gui: GUI, simulator: Simulator, onParameterChange?: () => void): void {
+    const timeStep = gui.add(this.params, 'dt', 0.1, 3.0, 0.1)
       .onFinishChange(() => onParameterChange?.())
-      .name('Time Step')
-      .domElement.title = 'Time Step';
+      .name('Time Step');
+    timeStep.domElement.title = 'Time Step';
 
-    gui.add(this.params, 'density', 0.5, 2.0, 0.1)
+    const density = gui.add(this.params, 'density', 0.5, 2.0, 0.1)
       .onFinishChange(() => onParameterChange?.())
-      .name('Droplet Density')
-      .domElement.title = 'The density of the droplet fluid';
+      .name('Droplet Density');
+    density.domElement.title = 'The density of the droplet fluid';
 
-    gui.add(this.params, 'evaporationRate', 0.001, 1.0, 0.001)
+    const evaporation = gui.add(this.params, 'evaporationRate', 0.001, 1.0, 0.001)
       .onFinishChange(() => onParameterChange?.())
-      .name('Evaporation Rate')
-      .domElement.title = 'Rate at which droplets evaporate (smaller = longer simulation)';
+      .name('Evaporation Rate');
+    evaporation.domElement.title = 'Rate at which droplets evaporate (smaller = longer simulation)';
 
-    gui.add(this.params, 'depositionRate', 0.001, 1.0, 0.001)
+    const deposition = gui.add(this.params, 'depositionRate', 0.001, 1.0, 0.001)
       .onFinishChange(() => onParameterChange?.())
-      .name('Deposition Rate')
-      .domElement.title = 'Rate at which sediment is deposited/eroded';
+      .name('Deposition Rate');
+    deposition.domElement.title = 'Rate at which sediment is deposited/eroded';
 
-    gui.add(this.params, 'minVolume', 0.01, 1.0, 0.01)
+    const minVolume = gui.add(this.params, 'minVolume', 0.01, 1.0, 0.01)
       .onFinishChange(() => onParameterChange?.())
-      .name('Min Droplet Volume')
-      .domElement.title = 'Minimum droplet volume before evaporation stops simulation';
+      .name('Min Droplet Volume');
+    minVolume.domElement.title = 'Minimum droplet volume before evaporation stops simulation';
 
-    gui.add(this.params, 'friction', 0.01, 1.0, 0.01)
+    const friction = gui.add(this.params, 'friction', 0.01, 1.0, 0.01)
       .onFinishChange(() => onParameterChange?.())
-      .name('Friction')
-      .domElement.title = 'Velocity loss factor per timestep';
+      .name('Friction');
+    friction.domElement.title = 'Velocity loss factor per timestep';
+
+    this.paramsControllers.push(timeStep, density, evaporation, deposition, minVolume, friction);
+
+    simulator.registerOnStartCallback(() => {
+      // Disable adjusting the parameters when the simulation is running
+      this.paramsControllers.forEach(controller => controller.disable());
+    });
+
+    simulator.registerOnCompleteCallback(() => {
+      // Enable adjusting the parameters when the simulation is complete
+      this.paramsControllers.forEach(controller => controller.enable());
+    });
+
+    simulator.registerOnResetCallback(() => {
+      // Re-enable the parameters when the simulation is reset
+      this.paramsControllers.forEach(controller => controller.enable(!simulator.getIsRunning()));
+    });
   }
 
   getControlsFolderName(): string {
     return "Parameter Settings";
+  }
+
+  registerParent(_parentGui: GUI): void {
+    // No-op, controls are added directly to the parent GUI in setupControls
   }
 
   //============================================= IErosionModel Interface ====//

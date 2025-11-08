@@ -8,10 +8,9 @@ import GUI from "lil-gui";
  */
 export interface IGuiModule {
   /**
-   * Sets up controls using the provided GUI instance
-   * @param gui The lil-gui instance to add controls to
+   * Allows registering this GUI module with a parent.
    */
-  setupControls(gui: GUI): void;
+  registerParent(parentGui: GUI): void;
 
   /**
    * Get the name for this module's folder
@@ -45,7 +44,7 @@ export class GuiManager {
     this.modules.set(name, module);
 
     // Setup controls for this module
-    module.setupControls(this.gui);
+    module.registerParent(this.gui);
   }
 
   /**

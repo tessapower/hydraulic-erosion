@@ -8,12 +8,12 @@ html, body {
 }
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  text-align: center;
-  width: 100vw;
-  height: 100vh;
-  padding: 0; /* remove page padding so canvas can fill */
+    max-width: 1280px;
+    margin: 0 auto;
+    text-align: center;
+    width: 100vw;
+    height: 100vh;
+    padding: 0; /* remove page padding so canvas can fill */
 }
 
 /* make the canvas fill the viewport and stay fixed */
@@ -32,7 +32,7 @@ html, body {
 
 .lil-gui button:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .lil-gui button:active:not(:disabled) {
@@ -56,14 +56,14 @@ html, body {
     opacity: 0.5 !important;
 }
 
-/* Stop button styles */
-.erosion-stop-btn:not(:disabled) {
-    background-color: #f44336 !important;
+/* Pause button styles */
+.erosion-pause-btn:not(:disabled) {
+    background-color: #f65145 !important;
     color: white !important;
     opacity: 1 !important;
 }
 
-.erosion-stop-btn:disabled {
+.erosion-pause-btn:disabled {
     background-color: transparent !important;
     opacity: 0.5 !important;
 }
