@@ -191,6 +191,10 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
     return "Parameter Settings";
   }
 
+  registerParent(_parentGui: GUI): void {
+    // No-op, controls are added directly to the parent GUI in setupControls
+  }
+
   //============================================= IErosionModel Interface ====//
   getName(): string {
     return "Beyer";

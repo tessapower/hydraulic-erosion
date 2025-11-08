@@ -24,7 +24,7 @@ export class LandscapeControls implements IGuiModule {
     this.landscape = landscape;
   }
 
-  setupControls(gui: GUI): void {
+  registerParent(parentGui: GUI): void {
     const generator = this.landscape.getGenerator();
 
     const folder = gui.addFolder("Landscape Generation");

@@ -11,7 +11,7 @@ export class ShaderControls implements IGuiModule {
     this.material = material;
   }
 
-  setupControls(gui: GUI): void {
+  registerParent(parentGui: GUI): void {
     const folder = gui.addFolder("Rendering");
 
     const colors = {

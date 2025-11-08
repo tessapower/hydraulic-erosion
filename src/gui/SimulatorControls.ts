@@ -22,7 +22,7 @@ export class SimulatorControls implements IGuiModule {
     this.modelsRegistry = models;
   }
 
-  setupControls(gui: GUI): void {
+  registerParent(parentGui: GUI): void {
     const erosionFolder = gui.addFolder('Erosion Simulation');
 
     // Model selection dropdown
