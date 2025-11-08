@@ -1,6 +1,6 @@
 // ErosionControls.ts: GUI controls for hydraulic erosion parameters
 
-import GUI from "lil-gui";
+import GUI, {Controller, FunctionController} from "lil-gui";
 import {Simulator} from "../erosion/Simulator";
 import type {IGuiModule} from "./GuiManager";
 import type {IErosionModel} from "../erosion/IErosionModel";
@@ -11,11 +11,39 @@ import type {IErosionControls} from "./IErosionControls";
  * parameter adjustment.
  */
 export class SimulatorControls implements IGuiModule {
+  private static readonly MIN_ITERATIONS = 1000;
+  private static readonly MAX_ITERATIONS = 1_000_000;
+  private static readonly ITERATIONS_STEP = 1000;
   private simulator: Simulator;
-  private startButton: any;
-  private stopButton: any;
-  private modelFolder?: GUI;
+  private erosionFolder: GUI = null!;
+  // Folder for model-specific parameters, which will be dynamically
+  // Buttons for controlling the simulation
+  private startButton: Controller = null!;
+  private pauseButton: Controller = null!;
+  private resetButton: Controller = null!;
+  // generated based on the selected model
+  private erosionModelParams?: GUI;
   private modelsRegistry: Map<string, IErosionModel>;
+  // Animation controls for starting, stopping, and resetting the simulation
+  private readonly animationControls = {
+    start: () => {
+      this.simulator.start();
+      this.updateButtonStates();
+    },
+    stop: () => {
+      this.simulator.stop();
+      this.updateButtonStates();
+    },
+    reset: () => {
+      this.simulator.reset();
+      this.updateButtonStates();
+    },
+  };
+  // Status display object for showing progress and status in the GUI
+  private readonly statusObj = {
+    status: '⚪ Ready',
+    progress: '0 / 0 (0%)',
+  };
 
   constructor(simulator: Simulator, models: Map<string, IErosionModel>) {
     this.simulator = simulator;
@@ -23,67 +51,27 @@ export class SimulatorControls implements IGuiModule {
   }
 
   registerParent(parentGui: GUI): void {
-    const erosionFolder = gui.addFolder('Erosion Simulation');
-
-    // Model selection dropdown
-    this.setupModelSelector(erosionFolder);
+    this.erosionFolder = parentGui.addFolder(this.getModuleName());
 
     // Status display
-    const statusObj = {
-      status: '⚪ Ready',
-      progress: '0 / 0 (0%)',
-    };
-    erosionFolder.add(statusObj, 'progress').name('Progress').listen().disable();
+    this.erosionFolder.add(this.statusObj, 'progress')
+      .name('Progress')
+      .listen().disable();
 
     // Update status in animation loop
-    const updateStatus = () => {
-      const isRunning = this.simulator.getIsRunning();
-      const isComplete = this.simulator.isComplete();
+    this.updateStatus();
 
-      if (isComplete) {
-        statusObj.status = '✅ Complete';
-      } else if (isRunning) {
-        statusObj.status = '🟢 Running';
-      } else {
-        statusObj.status = '⚪ Ready';
-      }
-
-      const current = this.simulator.getIterationsCompleted();
-      const total = this.simulator.getTotalIterations();
-      const percentage = this.simulator.getProgress().toFixed(1);
-      statusObj.progress = `${current} / ${total} (${percentage}%)`;
-
-      requestAnimationFrame(updateStatus);
-    };
-    updateStatus();
-
-    // Animation controls
-    const animationControls = {
-      start: () => {
-        this.simulator.start();
-        this.updateButtonStates();
-      },
-      stop: () => {
-        this.simulator.stop();
-        this.updateButtonStates();
-      },
-      reset: () => {
-        this.simulator.reset();
-        this.updateButtonStates();
-      },
-    };
-
-    this.startButton = erosionFolder.add(animationControls, 'start').name('▶ Start Erosion');
-    this.stopButton = erosionFolder.add(animationControls, 'stop').name('⏸ Stop Erosion');
-    erosionFolder.add(animationControls, 'reset').name('🔄 Reset');
+    // Create buttons for controlling the simulation
+    this.startButton = this.erosionFolder.add(this.animationControls, 'start')
+      .name('▶ Start Erosion');
+    this.pauseButton = this.erosionFolder.add(this.animationControls, 'stop')
+      .name('⏸ Stop Erosion');
+    this.resetButton = this.erosionFolder.add(this.animationControls, 'reset')
+      .name('🔄 Reset');
 
     // Add CSS classes to buttons
-    if (this.startButton?.$button) {
-      this.startButton.$button.classList.add('erosion-start-btn');
-    }
-    if (this.stopButton?.$button) {
-      this.stopButton.$button.classList.add('erosion-stop-btn');
-    }
+    (this.startButton as FunctionController)?.$button.classList.add('erosion-start-btn');
+    (this.pauseButton as FunctionController)?.$button.classList.add('erosion-stop-btn');
 
     // Set initial button states
     this.updateButtonStates();
@@ -93,8 +81,11 @@ export class SimulatorControls implements IGuiModule {
       value: this.simulator.getTotalIterations(),
     };
 
-    erosionFolder
-      .add(maxIterations, 'value', 1000, 1000000, 1000)
+    this.erosionFolder
+      .add(maxIterations, 'value',
+        SimulatorControls.MIN_ITERATIONS,
+        SimulatorControls.MAX_ITERATIONS,
+        SimulatorControls.ITERATIONS_STEP)
       .name('# Iterations')
       .onFinishChange((value: number) => {
         this.simulator.getErosionModel().setIterations(value);
@@ -103,20 +94,20 @@ export class SimulatorControls implements IGuiModule {
         this.updateButtonStates();
       }).domElement.title = 'Maximum number of iterations to simulate';
 
-    // Setup model-specific controls
-    this.setupModelControls(erosionFolder);
     // Set up a callback to update button states when the simulation completes
     this.simulator.registerOnCompleteCallback(() => {
       this.updateButtonStates();
     });
 
+    this.setupModelSelector();
+    this.setupModelParams();
   }
 
   getModuleName(): string {
     return 'Erosion';
   }
 
-  private setupModelSelector(folder: GUI): void {
+  private setupModelSelector(): void {
     const modelNames = Array.from(this.modelsRegistry.keys());
     const currentModel = this.simulator.getErosionModel();
 
@@ -124,7 +115,7 @@ export class SimulatorControls implements IGuiModule {
       model: currentModel.getName(),
     };
 
-    folder
+    this.erosionFolder
       .add(selector, 'model', modelNames)
       .name('Erosion Model')
       .onFinishChange((modelName: string) => {
@@ -133,24 +124,45 @@ export class SimulatorControls implements IGuiModule {
           this.simulator.setErosionModel(newModel);
 
           // Rebuild model-specific controls
-          if (this.modelFolder) {
-            this.modelFolder.destroy();
-            this.modelFolder = undefined;
+          if (this.erosionModelParams) {
+            this.erosionModelParams.destroy();
+            this.erosionModelParams = undefined;
           }
-          this.setupModelControls(folder);
+
+          this.setupModelParams();
         }
       });
   }
 
-  private setupModelControls(parentFolder: GUI): void {
+  private readonly updateStatus = (): void => {
+    const isRunning = this.simulator.getIsRunning();
+    const isComplete = this.simulator.isComplete();
+
+    if (isComplete) {
+      this.statusObj.status = '✅ Complete';
+    } else if (isRunning) {
+      this.statusObj.status = '🟢 Running';
+    } else {
+      this.statusObj.status = '⚪ Ready';
+    }
+
+    const current = this.simulator.getIterationsCompleted();
+    const total = this.simulator.getTotalIterations();
+    const percentage = this.simulator.getProgress().toFixed(1);
+    this.statusObj.progress = `${current} / ${total} (${percentage}%)`;
+
+    requestAnimationFrame(this.updateStatus);
+  };
+
+  private setupModelParams(): void {
     const model = this.simulator.getErosionModel();
 
     // Check if model implements IErosionControls
     if (this.implementsErosionControls(model)) {
-      this.modelFolder = parentFolder.addFolder(model.getControlsFolderName());
+      this.erosionModelParams = this.erosionFolder.addFolder(model.getControlsFolderName());
 
       // Let the model setup its own controls
-      (model as IErosionControls).setupControls(this.modelFolder, () => {
+      (model as IErosionControls).setupControls(this.erosionModelParams, () => {
         // Callback when parameters change
         this.simulator.stop();
         this.simulator.reset();
@@ -170,19 +182,22 @@ export class SimulatorControls implements IGuiModule {
     const isRunning = this.simulator.getIsRunning();
     const isComplete = this.simulator.isComplete();
 
-    if (this.startButton) {
-      if (isRunning || isComplete) {
-        this.startButton.disable();
+    if (isComplete) {
+      this.startButton.disable();
+      this.pauseButton.disable();
+      // Only enable reset when complete
+      this.resetButton.enable();
+    } else if (isRunning && !isComplete) {
+      this.startButton.disable();
+      this.pauseButton.enable();
+      this.resetButton.enable();
+    } else {
+      this.startButton.enable();
+      this.pauseButton.disable();
+      if (this.simulator.getIterationsCompleted() === 0) {
+        this.resetButton.disable();
       } else {
-        this.startButton.enable();
-      }
-    }
-
-    if (this.stopButton) {
-      if (isRunning) {
-        this.stopButton.enable();
-      } else {
-        this.stopButton.disable();
+        this.resetButton.enable();
       }
     }
   }
