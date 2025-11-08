@@ -7,7 +7,7 @@ import {BeyerErosion} from "./erosion/BeyerErosion";
 import {PBErosion} from "./erosion/PBErosion";
 import {GuiManager} from "./gui/GuiManager";
 import {LandscapeControls} from "./gui/LandscapeControls";
-import {SimulatorControls} from "./gui/SimulatorControls.ts";
+import {SimulatorControls} from "./gui/SimulatorControls";
 import {ShaderControls} from "./gui/ShaderControls";
 import {Simulator} from "./erosion/Simulator";
 import Stats from "stats.js";
