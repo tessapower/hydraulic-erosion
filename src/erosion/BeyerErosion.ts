@@ -124,6 +124,7 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
   }
   private static readonly EPSILON = 1e-3;
   public readonly params: IErosionParams;
+  public readonly usesChangeMap: boolean = true;
   // Change map for incremental erosion
   private changeMap: Float32Array | null = null;
   private changeMapWidth: number = 0;

@@ -75,6 +75,7 @@ export class PBErosion implements IErosionModel, IErosionControls {
   }
 
   public readonly params: IErosionParams;
+  public readonly usesChangeMap: boolean = false;
 
   constructor(params: Partial<IErosionParams> = {}) {
     this.params = {...PBErosion.DEFAULTS, ...params};
