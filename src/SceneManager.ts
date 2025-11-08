@@ -7,7 +7,7 @@ import {BeyerErosion} from "./erosion/BeyerErosion";
 import {PBErosion} from "./erosion/PBErosion";
 import {GuiManager} from "./gui/GuiManager";
 import {LandscapeControls} from "./gui/LandscapeControls";
-import {ErosionControls} from "./gui/ErosionControls";
+import {SimulatorControls} from "./gui/SimulatorControls.ts";
 import {ShaderControls} from "./gui/ShaderControls";
 import {Simulator} from "./erosion/Simulator";
 import Stats from "stats.js";
@@ -159,7 +159,7 @@ export class SceneManager {
       new LandscapeControls(this.landscape));
 
     this.guiManager.register("erosion",
-      new ErosionControls(this.simulator,
+      new SimulatorControls(this.simulator,
         new Map<string, IErosionModel>([
           ["Physics Based", physicsBased],
           ["Beyer", beyer],

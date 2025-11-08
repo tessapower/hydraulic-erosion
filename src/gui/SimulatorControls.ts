@@ -10,7 +10,7 @@ import type {IErosionControls} from "./IErosionControls";
  * Registers erosion-related controls with the GUI manager for interactive
  * parameter adjustment.
  */
-export class ErosionControls implements IGuiModule {
+export class SimulatorControls implements IGuiModule {
   private simulator: Simulator;
   private startButton: any;
   private stopButton: any;
