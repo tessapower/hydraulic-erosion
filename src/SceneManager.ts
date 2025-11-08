@@ -151,12 +151,12 @@ export class SceneManager {
 
     // Setup GUI
     this.guiManager = new GuiManager();
+    this.guiManager.register("landscape",
+      new LandscapeControls(this.landscape));
+
     this.guiManager.register("shader",
       new ShaderControls(this.landscape.getShader())
     );
-
-    this.guiManager.register("landscape",
-      new LandscapeControls(this.landscape));
 
     this.guiManager.register("erosion",
       new SimulatorControls(this.simulator,
