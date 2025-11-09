@@ -75,7 +75,7 @@ export class SimulatorControls implements IGuiModule {
 
     // Add CSS classes to buttons
     (this.startButton as FunctionController)?.$button.classList.add('erosion-start-btn');
-    (this.pauseButton as FunctionController)?.$button.classList.add('erosion-stop-btn');
+    (this.pauseButton as FunctionController)?.$button.classList.add('erosion-pause-btn');
 
     // Set initial button states
     this.updateButtonStates();
