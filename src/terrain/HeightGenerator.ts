@@ -55,6 +55,8 @@ export default class HeightGenerator {
     // Seed random number generator for consistent terrain generation
     this.rng(this.seed);
     this.simplex = createNoise2D(this.rng);
+    this.minHeight = Infinity;
+    this.maxHeight = -Infinity;
     const heights = new Float32Array(this.widthSegments * this.heightSegments);
     this.generateHeights(this.widthSegments, this.heightSegments, heights);
 
