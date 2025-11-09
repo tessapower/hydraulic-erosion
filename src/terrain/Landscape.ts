@@ -1,7 +1,7 @@
 // Landscape.ts: Manages landscape mesh creation and updates
 
 import * as THREE from "three";
-import LandscapeGenerator from "./LandscapeGenerator";
+import HeightGenerator from "./HeightGenerator";
 import {createPlaneMesh} from "./Plane";
 import {createLandscapeShader} from "./LandscapeShader";
 
@@ -14,7 +14,7 @@ export class Landscape {
 
   private readonly mesh: THREE.Mesh;
   private readonly shader: THREE.ShaderMaterial;
-  private readonly generator: LandscapeGenerator;
+  private readonly generator: HeightGenerator;
   private readonly segments: number;
   private readonly size: number;
 
@@ -58,9 +58,9 @@ export class Landscape {
   }
 
   /**
-   * Gets the generator for accessing erosion parameters
+   * Gets the generator for accessing landscape generation parameters
    */
-  getGenerator(): LandscapeGenerator {
+  getGenerator(): HeightGenerator {
     return this.generator;
   }
 

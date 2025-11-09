@@ -2,7 +2,7 @@
 
 import * as THREE from "three";
 import {Landscape} from "./terrain/Landscape";
-import LandscapeGenerator from "./terrain/LandscapeGenerator";
+import HeightGenerator from "./terrain/HeightGenerator.ts";
 import {BeyerErosion} from "./erosion/BeyerErosion";
 import {PBErosion} from "./erosion/PBErosion";
 import {GuiManager} from "./gui/GuiManager";
@@ -127,7 +127,7 @@ export class SceneManager {
     const rng = () => THREE.MathUtils.seededRandom();
 
     // Create landscape generator
-    const generator = new LandscapeGenerator(
+    const generator = new HeightGenerator(
       SceneManager.TERRAIN_RESOLUTION + 1,
       SceneManager.TERRAIN_RESOLUTION + 1,
       rng,
