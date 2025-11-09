@@ -2,7 +2,7 @@
 
 import * as THREE from "three";
 import {Landscape} from "./terrain/Landscape";
-import LandscapeGenerator from "./terrain/LandscapeGenerator";
+import HeightGenerator from "./terrain/HeightGenerator";
 import {BeyerErosion} from "./erosion/BeyerErosion";
 import {PBErosion} from "./erosion/PBErosion";
 import {GuiManager} from "./gui/GuiManager";
@@ -23,7 +23,7 @@ export class SceneManager {
   private static readonly TERRAIN_RESOLUTION: number = 256;
   private static readonly RANDOM_SEED: number = 42;
 
-  // Colors and fog settings
+  // Colors, fog, camera, lighting constants
   private static readonly BACKGROUND_COLOR: THREE.Color = new THREE.Color(0x8b8479);
   private static readonly FOG_NEAR: number = 675;
   private static readonly FOG_FAR: number = 850;
@@ -31,6 +31,10 @@ export class SceneManager {
   private static readonly CAMERA_FAR: number = 800;
   private static readonly CAMERA_POS: THREE.Vector3 = new THREE.Vector3(400, 400, 400);
   private static readonly CAMERA_TARGET: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
+  private static readonly LIGHT_COLOR: THREE.Color = new THREE.Color(1.0, 1.0, 0.9);
+  private static readonly LIGHT_POSITION: THREE.Vector3 = new THREE.Vector3(1, 1, 0).normalize().multiplyScalar(100);
+  private static readonly LIGHT_INTENSITY: number = 1.3;
+  private static readonly AMBIENT_INTENSITY: number = 0.1;
 
   // Camera Constants
   private static readonly FRUSTUM_SIZE: number = SceneManager.TERRAIN_SIZE * 1.2;
@@ -108,8 +112,9 @@ export class SceneManager {
     // Set up renderer
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, SceneManager.MAX_PIXEL_RATIO));
-    // Disable shadows, we handle lighting in the shader
-    this.renderer.shadowMap.enabled = false;
+
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.NoToneMapping;
 
     // Background color
@@ -127,7 +132,7 @@ export class SceneManager {
     const rng = () => THREE.MathUtils.seededRandom();
 
     // Create landscape generator
-    const generator = new LandscapeGenerator(
+    const generator = new HeightGenerator(
       SceneManager.TERRAIN_RESOLUTION + 1,
       SceneManager.TERRAIN_RESOLUTION + 1,
       rng,
@@ -139,6 +144,7 @@ export class SceneManager {
       SceneManager.TERRAIN_RESOLUTION,
       generator,
     );
+    this.scene.add(this.landscape.getGroup());
 
     // Create erosion models
     const beyer = new BeyerErosion({randomFn: rng});
@@ -147,7 +153,14 @@ export class SceneManager {
     // Create simulator to manage erosion process
     this.simulator = new Simulator(this.landscape, physicsBased);
 
-    this.scene.add(this.landscape.getMesh());
+    // Directional Light
+    const directionalLight = new THREE.DirectionalLight(SceneManager.LIGHT_COLOR, SceneManager.LIGHT_INTENSITY);
+    directionalLight.position.set(SceneManager.LIGHT_POSITION.x, SceneManager.LIGHT_POSITION.y, SceneManager.LIGHT_POSITION.z);
+    this.scene.add(directionalLight);
+
+    // Add ambient light
+    const ambientLight = new THREE.AmbientLight(SceneManager.LIGHT_COLOR, SceneManager.AMBIENT_INTENSITY);
+    this.scene.add(ambientLight);
 
     // Setup GUI
     this.guiManager = new GuiManager();

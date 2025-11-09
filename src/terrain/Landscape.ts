@@ -1,9 +1,10 @@
 // Landscape.ts: Manages landscape mesh creation and updates
 
 import * as THREE from "three";
-import LandscapeGenerator from "./LandscapeGenerator";
-import {createPlaneMesh} from "./Plane";
-import {createLandscapeShader} from "./LandscapeShader";
+import HeightGenerator from "./HeightGenerator";
+import {Mesh} from "./Mesh";
+import vertShader from "../shaders/terrain.vs.glsl?raw";
+import fragShader from "../shaders/terrain.fs.glsl?raw";
 
 /**
  * Manages landscape mesh creation, shader material, and height generation.
@@ -11,10 +12,22 @@ import {createLandscapeShader} from "./LandscapeShader";
 export class Landscape {
   private static readonly DEFAULT_SIZE: number = 512;
   private static readonly DEFAULT_RESOLUTION: number = 512;
+  private static readonly FLAT_COLOR: THREE.Color = new THREE.Color(0xffffff);
+  private static readonly STEEP_COLOR: THREE.Color = new THREE.Color(0xb5b3b0);
+  private static readonly WALL_COLOR: THREE.Color = new THREE.Color(0x9f9a93);
+  private static readonly WALL_HEIGHT_SCALE: number = 0.1;
+  private static readonly TEXTURE_REPEAT: number = 2;
+  private static readonly TEXTURE_NORMAl_SCALE: THREE.Vector2 = new THREE.Vector2(3, 3);
+  private static readonly TEXTURE_ROUGHNESS: number = 0.7;
+  private static readonly TEXTURE_METALNESS: number = 0.0;
+  private static readonly LIGHT_INTENSITY: number = 1.3;
+  private static readonly LIGHT_COLOR: THREE.Color = new THREE.Color(1.0, 1.0, 0.9);
+  private static readonly LIGHT_DIRECTION: THREE.Vector3 = new THREE.Vector3(1, 1, 1).normalize();
+  private static readonly INITIAL_SLOPE_THRESHOLD: number = 0.6;
 
-  private readonly mesh: THREE.Mesh;
+  private readonly mesh: Mesh;
   private readonly shader: THREE.ShaderMaterial;
-  private readonly generator: LandscapeGenerator;
+  private readonly generator: HeightGenerator;
   private readonly segments: number;
   private readonly size: number;
 
@@ -23,16 +36,44 @@ export class Landscape {
   constructor(
     size: number = Landscape.DEFAULT_SIZE,
     resolution: number = Landscape.DEFAULT_RESOLUTION,
-    generator: LandscapeGenerator,
+    generator: HeightGenerator,
   ) {
     this.size = size;
     this.segments = resolution;
     this.generator = generator;
 
-    this.shader = createLandscapeShader();
-    // Create initial terrain
-    this.mesh = createPlaneMesh(this.size, this.segments, this.shader);
-    this.generateHeights();
+    // Create initial height map
+    this.heightMap = this.generator.generateHeightMap();
+
+    // Create materials
+    this.shader = this.createLandscapeShader();
+
+    // Load normal map texture
+    const textureLoader = new THREE.TextureLoader();
+    const normalTexture = textureLoader.load(
+      `${import.meta.env.BASE_URL}textures/normal-map.jpg`
+    );
+
+    normalTexture.wrapS = normalTexture.wrapT = THREE.RepeatWrapping;
+    normalTexture.repeat.set(Landscape.TEXTURE_REPEAT, Landscape.TEXTURE_REPEAT);
+
+    const wallMaterial = new THREE.MeshStandardMaterial({
+      color: Landscape.WALL_COLOR,
+      normalMap: normalTexture,
+      normalScale: Landscape.TEXTURE_NORMAl_SCALE,
+      metalness: Landscape.TEXTURE_METALNESS,
+      roughness: Landscape.TEXTURE_ROUGHNESS,
+    });
+
+    // Create terrain mesh with walls
+    this.mesh = new Mesh(
+      this.size,
+      this.segments,
+      this.size * Landscape.WALL_HEIGHT_SCALE,
+      this.heightMap,
+      this.shader,
+      wallMaterial
+    );
   }
 
   /**
@@ -40,14 +81,15 @@ export class Landscape {
    * (uses the same random seed if it was seeded)
    */
   regenerate(): void {
-    this.generateHeights();
+    this.heightMap = this.generator.generateHeightMap();
+    this.updateMesh();
   }
 
   /**
-   * Gets the Three.js mesh
+   * Gets the Three.js group containing terrain and walls
    */
-  getMesh(): THREE.Mesh {
-    return this.mesh;
+  getGroup(): THREE.Group {
+    return this.mesh.getGroup();
   }
 
   /**
@@ -58,9 +100,9 @@ export class Landscape {
   }
 
   /**
-   * Gets the generator for accessing erosion parameters
+   * Gets the generator for accessing landscape generation parameters
    */
-  getGenerator(): LandscapeGenerator {
+  getGenerator(): HeightGenerator {
     return this.generator;
   }
 
@@ -75,26 +117,37 @@ export class Landscape {
    * Updates the mesh with the current geometry
    */
   updateMesh(): void {
-    const vertices = this.mesh.geometry.attributes.position;
-
-    // Apply heightmap to mesh
-    for (let i = 0; i < vertices.count; i++) {
-      vertices.setZ(i, this.heightMap[i]);
-    }
-    vertices.needsUpdate = true;
-    this.mesh.geometry.computeVertexNormals();
+    this.mesh.updateLandscape(this.heightMap, true);
   }
 
   /**
    * Cleans up resources
    */
   dispose(): void {
-    this.mesh.geometry.dispose();
+    this.mesh.dispose();
     this.shader.dispose();
   }
 
-  private generateHeights(): void {
-    this.heightMap = this.generator.generateHeightMap();
-    this.updateMesh();
+
+  private createLandscapeShader(): THREE.ShaderMaterial {
+    return new THREE.ShaderMaterial({
+      uniforms: THREE.UniformsUtils.merge([
+        THREE.UniformsLib.fog, // Automatically includes fogColor, fogNear, fogFar
+        {
+          // Color based on slope
+          u_flatColor: {value: Landscape.FLAT_COLOR},
+          u_steepColor: {value: Landscape.STEEP_COLOR},
+          u_steepness: {value: Landscape.INITIAL_SLOPE_THRESHOLD},
+          // Lighting
+          u_lightDirection: {value: Landscape.LIGHT_DIRECTION},
+          u_lightColor: {value: Landscape.LIGHT_COLOR},
+          u_lightStrength: {value: Landscape.LIGHT_INTENSITY},
+        }
+      ]),
+      vertexShader: vertShader,
+      fragmentShader: fragShader,
+      toneMapped: false,
+      fog: true,
+    });
   }
 }

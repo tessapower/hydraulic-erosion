@@ -1,7 +1,7 @@
 // LandscapeGenerator.ts: generates a landscape procedurally
 
-import { createNoise2D, type NoiseFunction2D } from "simplex-noise";
-import { type RandomFn } from "../utils/Random";
+import {createNoise2D, type NoiseFunction2D} from "simplex-noise";
+import {type RandomFn} from "../utils/Random";
 
 /**
  * Generates procedural terrain heightmaps using multi-octave noise.
@@ -12,26 +12,16 @@ import { type RandomFn } from "../utils/Random";
  * - Persistence: How much each octave contributes (typically 0.5 - 0.6)
  * - Lacunarity (Gain): Frequency multiplier between octaves (typically 2.0)
  */
-export default class LandscapeGenerator {
+export default class HeightGenerator {
   private static readonly DEFAULT_WIDTH_SEGMENTS: number = 513;
   private static readonly DEFAULT_HEIGHT_SEGMENTS: number = 513;
-
-  // returns a value between -1 and 1
-  private readonly simplex: NoiseFunction2D;
-
-  private readonly widthSegments: number;
-  private readonly heightSegments: number;
-
   // Terrain generation parameters (public for GUI control)
   public terrainFrequency: number = 0.005;
   public baseFrequency: number = 1.0;
   public terrainAmplitude: number = 60;
   public baseHeight: number = 0;
-
   public minHeight: number = Infinity;
   public maxHeight: number = -Infinity;
-
-  // Multi-octave noise parameters
   // Number of noise layers
   public octaves: number = 15;
   // Amplitude multiplier per octave (0.5 = each octave is half as strong)
@@ -39,9 +29,15 @@ export default class LandscapeGenerator {
   // Frequency multiplier per octave (2.0 = each octave is twice as frequent)
   public lacunarity: number = 2.0;
 
+  // Multi-octave noise parameters
+  // returns a value between -1 and 1
+  private readonly simplex: NoiseFunction2D;
+  private readonly widthSegments: number;
+  private readonly heightSegments: number;
+
   constructor(
-    widthSegments: number = LandscapeGenerator.DEFAULT_WIDTH_SEGMENTS,
-    heightSegments: number = LandscapeGenerator.DEFAULT_HEIGHT_SEGMENTS,
+    widthSegments: number = HeightGenerator.DEFAULT_WIDTH_SEGMENTS,
+    heightSegments: number = HeightGenerator.DEFAULT_HEIGHT_SEGMENTS,
     rng: RandomFn,
   ) {
     this.widthSegments = widthSegments;
