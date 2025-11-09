@@ -21,7 +21,6 @@ export class SceneManager {
   // Landscape settings
   private static readonly TERRAIN_SIZE: number = 256;
   private static readonly TERRAIN_RESOLUTION: number = 256;
-  private static readonly RANDOM_SEED: number = 42;
 
   // Colors, fog, camera, lighting constants
   private static readonly BACKGROUND_COLOR: THREE.Color = new THREE.Color(0x8b8479);
@@ -126,16 +125,10 @@ export class SceneManager {
     // Handle zooming in and out with mouse wheel
     this.canvas.addEventListener("wheel", this.onWheel, {passive: false});
 
-    // Seed random number generator to pass to landscape for generating
-    // reproducible terrain features
-    THREE.MathUtils.seededRandom(SceneManager.RANDOM_SEED);
-    const rng = () => THREE.MathUtils.seededRandom();
-
     // Create landscape generator
     const generator = new HeightGenerator(
       SceneManager.TERRAIN_RESOLUTION + 1,
       SceneManager.TERRAIN_RESOLUTION + 1,
-      rng,
     );
 
     // Create landscape

@@ -144,7 +144,7 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
 
   //======================================== IErosionControls Interface ====//
   setupControls(gui: GUI, simulator: Simulator, onParameterChange?: () => void): void {
-    const seed = gui.add(this.params, 'seed')
+    const seed = gui.add(this.params, 'seed', 0)
       .onFinishChange((value: number) => {
         onParameterChange?.()
         if (!isNaN(value) && value >= 0) {

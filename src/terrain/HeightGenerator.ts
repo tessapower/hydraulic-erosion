@@ -1,7 +1,8 @@
 // LandscapeGenerator.ts: generates a landscape procedurally
 
-import {createNoise2D, type NoiseFunction2D} from "simplex-noise";
+import * as THREE from "three";
 import {type RandomFn} from "../utils/Random";
+import {createNoise2D, type NoiseFunction2D} from "simplex-noise";
 
 /**
  * Generates procedural terrain heightmaps using multi-octave noise.
@@ -22,33 +23,38 @@ export default class HeightGenerator {
   public baseHeight: number = 0;
   public minHeight: number = Infinity;
   public maxHeight: number = -Infinity;
+  // Multi-octave noise parameters
   // Number of noise layers
   public octaves: number = 15;
   // Amplitude multiplier per octave (0.5 = each octave is half as strong)
   public persistence: number = 0.6;
   // Frequency multiplier per octave (2.0 = each octave is twice as frequent)
   public lacunarity: number = 2.0;
+  public seed: number = 42;
 
-  // Multi-octave noise parameters
   // returns a value between -1 and 1
-  private readonly simplex: NoiseFunction2D;
+  private simplex: NoiseFunction2D;
   private readonly widthSegments: number;
   private readonly heightSegments: number;
+  private rng: RandomFn = THREE.MathUtils.seededRandom;
 
   constructor(
     widthSegments: number = HeightGenerator.DEFAULT_WIDTH_SEGMENTS,
     heightSegments: number = HeightGenerator.DEFAULT_HEIGHT_SEGMENTS,
-    rng: RandomFn,
   ) {
     this.widthSegments = widthSegments;
     this.heightSegments = heightSegments;
-    this.simplex = createNoise2D(rng);
+    this.rng(this.seed);
+    this.simplex = createNoise2D(this.rng);
   }
 
   /**
    * Generates a height map for a plane with widthSegments x heightSegments.
    */
   generateHeightMap(): Float32Array {
+    // Seed random number generator for consistent terrain generation
+    this.rng(this.seed);
+    this.simplex = createNoise2D(this.rng);
     const heights = new Float32Array(this.widthSegments * this.heightSegments);
     this.generateHeights(this.widthSegments, this.heightSegments, heights);
 

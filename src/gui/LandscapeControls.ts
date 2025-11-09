@@ -13,6 +13,7 @@ export class LandscapeControls implements IGuiModule {
   private landscapeFolder: GUI = null!;
 
   private readonly controls = {
+    seed: {start: 42},
     terrainFrequency: {min: 0, max: 0.015, step: 0.001},
     terrainAmplitude: {min: 10, max: 200, step: 5},
     baseHeight: {min: -50, max: 50, step: 5},
@@ -29,6 +30,15 @@ export class LandscapeControls implements IGuiModule {
     this.landscapeFolder = parentGui.addFolder(this.getModuleName());
 
     const generator = this.landscape.getGenerator();
+    this.landscapeFolder.add(generator, "seed", 0)
+      .name("Seed")
+      .onFinishChange((value: number) => {
+        if (!isNaN(value) && value >= 0) {
+          generator.seed = value;
+          this.landscape.regenerate();
+        }
+      }).domElement.title = "Random seed for terrain generation (integer >= 0)";
+
     this.landscapeFolder
       .add(
         generator,
@@ -106,15 +116,6 @@ export class LandscapeControls implements IGuiModule {
       .onFinishChange(() => {
         this.landscape.regenerate();
       }).domElement.title = "Frequency multiplier between octaves (higher = more varied detail)";
-
-    // Add regenerate button
-    const regenerateControl = {
-      regenerate: () => {
-        this.landscape.regenerate();
-      },
-    };
-    const regenerateButton = this.landscapeFolder.add(regenerateControl, "regenerate").name("Regenerate");
-    regenerateButton.domElement.title = "Generate new terrain with current settings";
 
     this.landscapeFolder.close();
   }
