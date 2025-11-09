@@ -79,6 +79,11 @@ export interface IErosionParams {
 
   /** Random number generator function for reproducible terrain generation */
   randomFn: RandomFn;
+
+  /**
+   * Seed for the random number generator.
+   */
+  seed: number;
 }
 
 export class BeyerErosion implements IErosionModel, IErosionControls {
@@ -102,7 +107,8 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
     enableBlurring: true,
     blurRadius: 1,
     blendFactor: 0.5,
-    randomFn: Math.random,
+    randomFn: THREE.MathUtils.seededRandom,
+    seed: 42,
   };
 
   private static Droplet = class {
@@ -138,6 +144,16 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
 
   //======================================== IErosionControls Interface ====//
   setupControls(gui: GUI, simulator: Simulator, onParameterChange?: () => void): void {
+    const seed = gui.add(this.params, 'seed', 0)
+      .onFinishChange((value: number) => {
+        onParameterChange?.();
+        if (!isNaN(value) && value >= 0) {
+          this.params.seed = value;
+        }
+      })
+      .name('Seed');
+    seed.domElement.title = 'Seed for the random number generator';
+
     const maxPath = gui.add(this.params, 'maxPath', 16, 128, 1)
       .onFinishChange(() => onParameterChange?.())
       .name('Droplet Lifetime');
@@ -188,11 +204,13 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
       .name('Deposition Radius');
     deposition.domElement.title = 'Radius of terrain affected when depositing sediment (larger = smoother deposits)';
 
-    this.paramsControllers.push(maxPath, inertia, capacity, minSlope, erosionSpeed, depositionSpeed, evaporationSpeed, gravity, erosionRadius, deposition);
+    this.paramsControllers.push(seed, maxPath, inertia, capacity, minSlope, erosionSpeed, depositionSpeed, evaporationSpeed, gravity, erosionRadius, deposition);
 
     simulator.registerOnStartCallback(() => {
       // Disable adjusting the parameters when the simulation is running
       this.paramsControllers.forEach(controller => controller.disable());
+      // Set the seed for the random number generator to ensure reproducibility
+      this.params.randomFn(this.params.seed);
     });
 
     simulator.registerOnCompleteCallback(() => {
@@ -223,6 +241,11 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
     this.changeMapWidth = width;
     this.changeMapHeight = height;
     this.changeMap = new Float32Array(width * height);
+    this.params.randomFn(this.params.seed);
+  }
+
+  setSeed(seed: number) {
+    this.params.seed = seed;
   }
 
   getIterations(): number {
