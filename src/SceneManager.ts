@@ -23,7 +23,7 @@ export class SceneManager {
   private static readonly TERRAIN_RESOLUTION: number = 256;
   private static readonly RANDOM_SEED: number = 42;
 
-  // Colors and fog settings
+  // Colors, fog, camera, lighting constants
   private static readonly BACKGROUND_COLOR: THREE.Color = new THREE.Color(0x8b8479);
   private static readonly FOG_NEAR: number = 675;
   private static readonly FOG_FAR: number = 850;
@@ -144,6 +144,7 @@ export class SceneManager {
       SceneManager.TERRAIN_RESOLUTION,
       generator,
     );
+    this.scene.add(this.landscape.getGroup());
 
     // Create erosion models
     const beyer = new BeyerErosion({randomFn: rng});
