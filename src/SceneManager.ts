@@ -108,8 +108,9 @@ export class SceneManager {
     // Set up renderer
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, SceneManager.MAX_PIXEL_RATIO));
-    // Disable shadows, we handle lighting in the shader
-    this.renderer.shadowMap.enabled = false;
+
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.NoToneMapping;
 
     // Background color
@@ -147,7 +148,17 @@ export class SceneManager {
     // Create simulator to manage erosion process
     this.simulator = new Simulator(this.landscape, physicsBased);
 
-    this.scene.add(this.landscape.getMesh());
+    // Directional Light
+    const directionalLight = new THREE.DirectionalLight(new THREE.Color(1.0, 1.0, 0.9), 1.3);
+    directionalLight.position.set(1, 1, 0).normalize().multiplyScalar(100); // Don't normalize
+
+    this.scene.add(directionalLight);
+
+    // Add ambient light
+    const ambientLight = new THREE.AmbientLight(new THREE.Color(1.0, 1.0, 0.9), 0.1);
+    this.scene.add(ambientLight);
+
+    this.scene.add(this.landscape.getGroup());
 
     // Setup GUI
     this.guiManager = new GuiManager();
