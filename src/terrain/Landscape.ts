@@ -23,7 +23,7 @@ export class Landscape {
   private static readonly LIGHT_INTENSITY: number = 1.3;
   private static readonly LIGHT_COLOR: THREE.Color = new THREE.Color(1.0, 1.0, 0.9);
   private static readonly LIGHT_DIRECTION: THREE.Vector3 = new THREE.Vector3(1, 1, 1).normalize();
-  private static readonly INTIAL_SLOPE_THRESHOLD: number = 0.6;
+  private static readonly INITIAL_SLOPE_THRESHOLD: number = 0.6;
 
   private readonly mesh: Mesh;
   private readonly shader: THREE.ShaderMaterial;
@@ -137,7 +137,7 @@ export class Landscape {
           // Color based on slope
           u_flatColor: {value: Landscape.FLAT_COLOR},
           u_steepColor: {value: Landscape.STEEP_COLOR},
-          u_steepness: {value: Landscape.INTIAL_SLOPE_THRESHOLD},
+          u_steepness: {value: Landscape.INITIAL_SLOPE_THRESHOLD},
           // Lighting
           u_lightDirection: {value: Landscape.LIGHT_DIRECTION},
           u_lightColor: {value: Landscape.LIGHT_COLOR},
