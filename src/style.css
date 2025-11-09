@@ -68,3 +68,7 @@ html, body {
     opacity: 0.5 !important;
 }
 
+.lil-gui {
+    --number-color: #8ea187;
+    --string-color: #8ea187;
+}

@@ -12,9 +12,9 @@ import fragShader from "../shaders/terrain.fs.glsl?raw";
 export class Landscape {
   private static readonly DEFAULT_SIZE: number = 512;
   private static readonly DEFAULT_RESOLUTION: number = 512;
-  private static readonly FLAT_COLOR: THREE.Color = new THREE.Color(0xffffff);
+  private static readonly FLAT_COLOR: THREE.Color = new THREE.Color(0x8ea187);
   private static readonly STEEP_COLOR: THREE.Color = new THREE.Color(0xb5b3b0);
-  private static readonly WALL_COLOR: THREE.Color = new THREE.Color(0x9f9a93);
+  private static readonly WALL_COLOR: THREE.Color = new THREE.Color(0x787B6D);
   private static readonly WALL_HEIGHT_SCALE: number = 0.1;
   private static readonly TEXTURE_REPEAT: number = 2;
   private static readonly TEXTURE_NORMAl_SCALE: THREE.Vector2 = new THREE.Vector2(3, 3);

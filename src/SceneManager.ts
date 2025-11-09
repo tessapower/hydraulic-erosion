@@ -33,7 +33,7 @@ export class SceneManager {
   private static readonly LIGHT_COLOR: THREE.Color = new THREE.Color(1.0, 1.0, 0.9);
   private static readonly LIGHT_POSITION: THREE.Vector3 = new THREE.Vector3(1, 1, 0).normalize().multiplyScalar(100);
   private static readonly LIGHT_INTENSITY: number = 1.3;
-  private static readonly AMBIENT_INTENSITY: number = 0.1;
+  private static readonly AMBIENT_INTENSITY: number = 0.5;
 
   // Camera Constants
   private static readonly FRUSTUM_SIZE: number = SceneManager.TERRAIN_SIZE * 1.2;
