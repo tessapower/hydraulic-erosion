@@ -209,7 +209,7 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
     simulator.registerOnStartCallback(() => {
       // Disable adjusting the parameters when the simulation is running
       this.paramsControllers.forEach(controller => controller.disable());
-      // Seed the seed for the random number generator to ensure reproducibility
+      // Set the seed for the random number generator to ensure reproducibility
       this.params.randomFn(this.params.seed);
     });
 
