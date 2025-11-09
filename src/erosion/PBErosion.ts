@@ -83,7 +83,6 @@ export class PBErosion implements IErosionModel, IErosionControls {
 
   public readonly params: IErosionParams;
   public readonly usesChangeMap: boolean = false;
-
   private readonly paramsControllers: Array<Controller> = [];
 
   constructor(params: Partial<IErosionParams> = {}) {

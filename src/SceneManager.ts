@@ -39,7 +39,7 @@ export class SceneManager {
   private static readonly FRUSTUM_SIZE: number = SceneManager.TERRAIN_SIZE * 1.2;
   private static readonly ZOOM_MIN: number = 0.2;
   private static readonly ZOOM_MAX: number = 5.0;
-  // Sensitivity: smaller = slower zoom (tweak to taste)
+  // Sensitivity: smaller = slower zoom
   private static readonly ZOOM_SENSITIVITY: number = 0.001;
   private static readonly WHEEL_LINE_HEIGHT: number = 16;
 
