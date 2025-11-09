@@ -27,7 +27,7 @@ export class SceneManager {
   private static readonly FOG_NEAR: number = 675;
   private static readonly FOG_FAR: number = 850;
   private static readonly CAMERA_NEAR: number = -800;
-  private static readonly CAMERA_FAR: number = 800;
+  private static readonly CAMERA_FAR: number = 900;
   private static readonly CAMERA_POS: THREE.Vector3 = new THREE.Vector3(400, 400, 400);
   private static readonly CAMERA_TARGET: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
   private static readonly LIGHT_COLOR: THREE.Color = new THREE.Color(1.0, 1.0, 0.9);
