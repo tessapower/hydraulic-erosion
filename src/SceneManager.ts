@@ -147,8 +147,8 @@ export class SceneManager {
     this.scene.add(this.landscape.getGroup());
 
     // Create erosion models
-    const beyer = new BeyerErosion({randomFn: rng});
-    const physicsBased: PBErosion = new PBErosion({randomFn: rng});
+    const beyer = new BeyerErosion();
+    const physicsBased: PBErosion = new PBErosion();
 
     // Create simulator to manage erosion process
     this.simulator = new Simulator(this.landscape, physicsBased);

@@ -21,6 +21,8 @@ export interface IErosionModel {
 
   setIterations(n: number): void;
 
+  setSeed(seed: number): void;
+
   simulateStep(heightMap: Float32Array, width: number, height: number): void;
 
   /**

@@ -1,1 +1,1 @@
-export type RandomFn = () => number;
+export type RandomFn = (seed?: number) => number;

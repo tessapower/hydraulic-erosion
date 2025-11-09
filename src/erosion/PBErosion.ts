@@ -43,6 +43,11 @@ export interface IErosionParams {
 
   /** Random number generator function */
   randomFn: RandomFn;
+
+  /**
+   * Seed for the random number generator.
+   */
+  seed: number;
 }
 
 export class PBErosion implements IErosionModel, IErosionControls {
@@ -55,7 +60,8 @@ export class PBErosion implements IErosionModel, IErosionControls {
     minVolume: 0.01,
     friction: 0.05,
     heightScale: 1.0,
-    randomFn: Math.random,
+    randomFn: THREE.MathUtils.seededRandom,
+    seed: 42,
   };
 
   private static Droplet = class {
@@ -86,6 +92,16 @@ export class PBErosion implements IErosionModel, IErosionControls {
 
   //========================================== IErosionControls Interface ====//
   setupControls(gui: GUI, simulator: Simulator, onParameterChange?: () => void): void {
+    const seed = gui.add(this.params, 'seed')
+      .onFinishChange((value: number) => {
+        onParameterChange?.()
+        if (!isNaN(value) && value >= 0) {
+          this.params.seed = value;
+        }
+      })
+      .name('Seed');
+    seed.domElement.title = 'Seed for the random number generator';
+
     const timeStep = gui.add(this.params, 'dt', 0.1, 3.0, 0.1)
       .onFinishChange(() => onParameterChange?.())
       .name('Time Step');
@@ -116,11 +132,13 @@ export class PBErosion implements IErosionModel, IErosionControls {
       .name('Friction');
     friction.domElement.title = 'Velocity loss factor per timestep';
 
-    this.paramsControllers.push(timeStep, density, evaporation, deposition, minVolume, friction);
+    this.paramsControllers.push(seed, timeStep, density, evaporation, deposition, minVolume, friction);
 
     simulator.registerOnStartCallback(() => {
       // Disable adjusting the parameters when the simulation is running
       this.paramsControllers.forEach(controller => controller.disable());
+      // Set the random seed for the simulation to ensure reproducibility
+      this.params.randomFn(this.params.seed);
     });
 
     simulator.registerOnCompleteCallback(() => {
@@ -149,6 +167,10 @@ export class PBErosion implements IErosionModel, IErosionControls {
 
   initialize(_width: number, _height: number): void {
     // No-op
+  }
+
+  setSeed(seed: number) {
+    this.params.seed = seed;
   }
 
   getIterations(): number {
