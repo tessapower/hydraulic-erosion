@@ -2,8 +2,9 @@
 
 import * as THREE from "three";
 import HeightGenerator from "./HeightGenerator";
-import {createPlaneMesh} from "./Plane";
-import {createLandscapeShader} from "./LandscapeShader";
+import {Mesh} from "./Mesh";
+import vertShader from "../shaders/terrain.vs.glsl?raw";
+import fragShader from "../shaders/terrain.fs.glsl?raw";
 
 /**
  * Manages landscape mesh creation, shader material, and height generation.
@@ -11,8 +12,10 @@ import {createLandscapeShader} from "./LandscapeShader";
 export class Landscape {
   private static readonly DEFAULT_SIZE: number = 512;
   private static readonly DEFAULT_RESOLUTION: number = 512;
+  private static readonly FLAT_COLOR: THREE.Color = new THREE.Color(0xffffff);
+  private static readonly STEEP_COLOR: THREE.Color = new THREE.Color(0xb5b3b0);
 
-  private readonly mesh: THREE.Mesh;
+  private readonly mesh: Mesh;
   private readonly shader: THREE.ShaderMaterial;
   private readonly generator: HeightGenerator;
   private readonly segments: number;
@@ -23,16 +26,44 @@ export class Landscape {
   constructor(
     size: number = Landscape.DEFAULT_SIZE,
     resolution: number = Landscape.DEFAULT_RESOLUTION,
-    generator: LandscapeGenerator,
+    generator: HeightGenerator,
   ) {
     this.size = size;
     this.segments = resolution;
     this.generator = generator;
 
-    this.shader = createLandscapeShader();
-    // Create initial terrain
-    this.mesh = createPlaneMesh(this.size, this.segments, this.shader);
-    this.generateHeights();
+    // Create initial height map
+    this.heightMap = this.generator.generateHeightMap();
+
+    // Create materials
+    this.shader = this.createLandscapeShader();
+
+    // Load normal map texture
+    const textureLoader = new THREE.TextureLoader();
+    const normalTexture = textureLoader.load(
+      `${import.meta.env.BASE_URL}textures/normal-map.jpg`
+    );
+
+    normalTexture.wrapS = normalTexture.wrapT = THREE.RepeatWrapping;
+    normalTexture.repeat.set(2, 2);
+
+    const wallMaterial = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(0x9f9a93),
+      normalMap: normalTexture,
+      normalScale: new THREE.Vector2(3, 3),
+      metalness: 0.0,
+      roughness: 0.7,
+    });
+
+    // Create terrain mesh with walls
+    this.mesh = new Mesh(
+      this.size,
+      this.segments,
+      this.size / 10, // wall height
+      this.heightMap,
+      this.shader,
+      wallMaterial
+    );
   }
 
   /**
@@ -40,14 +71,15 @@ export class Landscape {
    * (uses the same random seed if it was seeded)
    */
   regenerate(): void {
-    this.generateHeights();
+    this.heightMap = this.generator.generateHeightMap();
+    this.updateMesh();
   }
 
   /**
-   * Gets the Three.js mesh
+   * Gets the Three.js group containing terrain and walls
    */
-  getMesh(): THREE.Mesh {
-    return this.mesh;
+  getGroup(): THREE.Group {
+    return this.mesh.getGroup();
   }
 
   /**
@@ -75,26 +107,38 @@ export class Landscape {
    * Updates the mesh with the current geometry
    */
   updateMesh(): void {
-    const vertices = this.mesh.geometry.attributes.position;
-
-    // Apply heightmap to mesh
-    for (let i = 0; i < vertices.count; i++) {
-      vertices.setZ(i, this.heightMap[i]);
-    }
-    vertices.needsUpdate = true;
-    this.mesh.geometry.computeVertexNormals();
+    this.mesh.updateLandscape(this.heightMap, true);
   }
 
   /**
    * Cleans up resources
    */
   dispose(): void {
-    this.mesh.geometry.dispose();
+    this.mesh.dispose();
     this.shader.dispose();
   }
 
-  private generateHeights(): void {
-    this.heightMap = this.generator.generateHeightMap();
-    this.updateMesh();
+
+  private createLandscapeShader(): THREE.ShaderMaterial {
+    return new THREE.ShaderMaterial({
+      uniforms: THREE.UniformsUtils.merge([
+        THREE.UniformsLib.fog, // Automatically includes fogColor, fogNear, fogFar
+        {
+          // Color based on slope
+          u_flatColor: {value: Landscape.FLAT_COLOR},
+          u_steepColor: {value: Landscape.STEEP_COLOR},
+          u_steepness: {value: 0.6}, // Threshold
+          // Lighting
+          // TODO: Replace with non-hardcoded values
+          u_lightDirection: {value: new THREE.Vector3(1, 1, 1).normalize()},
+          u_lightColor: {value: new THREE.Color(1.0, 1.0, 0.9)},
+          u_lightStrength: {value: 1.3},
+        }
+      ]),
+      vertexShader: vertShader,
+      fragmentShader: fragShader,
+      toneMapped: false,
+      fog: true,
+    });
   }
 }
