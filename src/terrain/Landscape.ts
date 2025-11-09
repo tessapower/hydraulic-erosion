@@ -14,6 +14,16 @@ export class Landscape {
   private static readonly DEFAULT_RESOLUTION: number = 512;
   private static readonly FLAT_COLOR: THREE.Color = new THREE.Color(0xffffff);
   private static readonly STEEP_COLOR: THREE.Color = new THREE.Color(0xb5b3b0);
+  private static readonly WALL_COLOR: THREE.Color = new THREE.Color(0x9f9a93);
+  private static readonly WALL_HEIGHT_SCALE: number = 0.1;
+  private static readonly TEXTURE_REPEAT: number = 2;
+  private static readonly TEXTURE_NORMAl_SCALE: THREE.Vector2 = new THREE.Vector2(3, 3);
+  private static readonly TEXTURE_ROUGHNESS: number = 0.7;
+  private static readonly TEXTURE_METALNESS: number = 0.0;
+  private static readonly LIGHT_INTENSITY: number = 1.3;
+  private static readonly LIGHT_COLOR: THREE.Color = new THREE.Color(1.0, 1.0, 0.9);
+  private static readonly LIGHT_DIRECTION: THREE.Vector3 = new THREE.Vector3(1, 1, 1).normalize();
+  private static readonly INTIAL_SLOPE_THRESHOLD: number = 0.6;
 
   private readonly mesh: Mesh;
   private readonly shader: THREE.ShaderMaterial;
@@ -45,21 +55,21 @@ export class Landscape {
     );
 
     normalTexture.wrapS = normalTexture.wrapT = THREE.RepeatWrapping;
-    normalTexture.repeat.set(2, 2);
+    normalTexture.repeat.set(Landscape.TEXTURE_REPEAT, Landscape.TEXTURE_REPEAT);
 
     const wallMaterial = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(0x9f9a93),
+      color: Landscape.WALL_COLOR,
       normalMap: normalTexture,
-      normalScale: new THREE.Vector2(3, 3),
-      metalness: 0.0,
-      roughness: 0.7,
+      normalScale: Landscape.TEXTURE_NORMAl_SCALE,
+      metalness: Landscape.TEXTURE_METALNESS,
+      roughness: Landscape.TEXTURE_ROUGHNESS,
     });
 
     // Create terrain mesh with walls
     this.mesh = new Mesh(
       this.size,
       this.segments,
-      this.size / 10, // wall height
+      this.size * Landscape.WALL_HEIGHT_SCALE,
       this.heightMap,
       this.shader,
       wallMaterial
@@ -127,12 +137,11 @@ export class Landscape {
           // Color based on slope
           u_flatColor: {value: Landscape.FLAT_COLOR},
           u_steepColor: {value: Landscape.STEEP_COLOR},
-          u_steepness: {value: 0.6}, // Threshold
+          u_steepness: {value: Landscape.INTIAL_SLOPE_THRESHOLD},
           // Lighting
-          // TODO: Replace with non-hardcoded values
-          u_lightDirection: {value: new THREE.Vector3(1, 1, 1).normalize()},
-          u_lightColor: {value: new THREE.Color(1.0, 1.0, 0.9)},
-          u_lightStrength: {value: 1.3},
+          u_lightDirection: {value: Landscape.LIGHT_DIRECTION},
+          u_lightColor: {value: Landscape.LIGHT_COLOR},
+          u_lightStrength: {value: Landscape.LIGHT_INTENSITY},
         }
       ]),
       vertexShader: vertShader,

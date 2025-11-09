@@ -31,6 +31,10 @@ export class SceneManager {
   private static readonly CAMERA_FAR: number = 800;
   private static readonly CAMERA_POS: THREE.Vector3 = new THREE.Vector3(400, 400, 400);
   private static readonly CAMERA_TARGET: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
+  private static readonly LIGHT_COLOR: THREE.Color = new THREE.Color(1.0, 1.0, 0.9);
+  private static readonly LIGHT_POSITION: THREE.Vector3 = new THREE.Vector3(1, 1, 0).normalize().multiplyScalar(100);
+  private static readonly LIGHT_INTENSITY: number = 1.3;
+  private static readonly AMBIENT_INTENSITY: number = 0.1;
 
   // Camera Constants
   private static readonly FRUSTUM_SIZE: number = SceneManager.TERRAIN_SIZE * 1.2;
@@ -149,16 +153,13 @@ export class SceneManager {
     this.simulator = new Simulator(this.landscape, physicsBased);
 
     // Directional Light
-    const directionalLight = new THREE.DirectionalLight(new THREE.Color(1.0, 1.0, 0.9), 1.3);
-    directionalLight.position.set(1, 1, 0).normalize().multiplyScalar(100); // Don't normalize
-
+    const directionalLight = new THREE.DirectionalLight(SceneManager.LIGHT_COLOR, SceneManager.LIGHT_INTENSITY);
+    directionalLight.position.set(SceneManager.LIGHT_POSITION.x, SceneManager.LIGHT_POSITION.y, SceneManager.LIGHT_POSITION.z);
     this.scene.add(directionalLight);
 
     // Add ambient light
-    const ambientLight = new THREE.AmbientLight(new THREE.Color(1.0, 1.0, 0.9), 0.1);
+    const ambientLight = new THREE.AmbientLight(SceneManager.LIGHT_COLOR, SceneManager.AMBIENT_INTENSITY);
     this.scene.add(ambientLight);
-
-    this.scene.add(this.landscape.getGroup());
 
     // Setup GUI
     this.guiManager = new GuiManager();
