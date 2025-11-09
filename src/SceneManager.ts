@@ -2,7 +2,7 @@
 
 import * as THREE from "three";
 import {Landscape} from "./terrain/Landscape";
-import HeightGenerator from "./terrain/HeightGenerator.ts";
+import HeightGenerator from "./terrain/HeightGenerator";
 import {BeyerErosion} from "./erosion/BeyerErosion";
 import {PBErosion} from "./erosion/PBErosion";
 import {GuiManager} from "./gui/GuiManager";
