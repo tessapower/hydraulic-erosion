@@ -94,7 +94,48 @@ html, body {
     opacity: 0.5 !important;
 }
 
-.lil-gui {
-    --number-color: #8ea187;
-    --string-color: #8ea187;
+/* Loading spinner styles */
+#loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid #fff;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+#loading-overlay p {
+    color: white;
+    margin-top: 20px;
+    font-size: 18px;
+}
+
+#loading-progress {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 10px;
+    font-family: monospace;
 }

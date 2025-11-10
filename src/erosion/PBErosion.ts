@@ -187,10 +187,19 @@ export class PBErosion implements IErosionModel, IErosionControls {
   }
 
   // Bulk erosion function
-  erode(heightMap: Float32Array, width: number, height: number): void {
+  erode(heightMap: Float32Array, width: number, height: number, onProgress?: (iteration: number, total: number) => void): void {
     for (let i = 0; i < this.params.iterations; i++) {
       this.simulateDroplet(heightMap, width, height);
+
+      // Progress callback every 10k iterations
+      if (i % 10000 === 0 && i > 0) {
+        onProgress?.(i, this.params.iterations);
+      }
     }
+
+    // Final progress update
+    onProgress?.(this.params.iterations, this.params.iterations);
+  }
 
   toSerializable() {
     // Extract all parameters except the randomFn (which is not serializable)

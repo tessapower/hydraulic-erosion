@@ -271,8 +271,9 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
    * @param heightMap - Float32Array representing the heightmap
    * @param width - Width of the heightmap
    * @param height - Height of the heightmap
+   * @param onProgress - Optional callback for progress updates
    */
-  erode(heightMap: Float32Array, width: number, height: number): void {
+  erode(heightMap: Float32Array, width: number, height: number, onProgress?: (iteration: number, total: number) => void): void {
     const startTime = performance.now();
 
     // Track changes for blurring
@@ -281,14 +282,16 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
     for (let i = 0; i < this.params.iterations; i++) {
       this.simulateDroplet(heightMap, changeMap, width, height);
 
-      // Progress logging
-      {
-        if (i % 10000 === 0 && i > 0) {
-          const progress: string = ((i / this.params.iterations) * 100).toFixed(1);
-          console.log(`${progress} % complete`);
-        }
+      // Progress callback and logging
+      if (i % 10000 === 0 && i > 0) {
+        onProgress?.(i, this.params.iterations);
+        const progress: string = ((i / this.params.iterations) * 100).toFixed(1);
+        console.log(`${progress} % complete`);
       }
     }
+
+    // Final progress update
+    onProgress?.(this.params.iterations, this.params.iterations);
 
     // Blurring
     {

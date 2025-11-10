@@ -37,8 +37,9 @@ export interface IErosionModel {
 
   /**
    * Performs the full erosion process on the height map (batch mode).
+   * @param onProgress Optional callback for progress updates (iteration, total)
    */
-  erode(heightMap: Float32Array, width: number, height: number): void;
+  erode(heightMap: Float32Array, width: number, height: number, onProgress?: (iteration: number, total: number) => void): void;
 
   /**
    * Applies accumulated changes to the height map. Requires tracking changes
