@@ -185,6 +185,10 @@ export class SceneManager {
       this.comparisonControls.updateVisibility();
     });
 
+    this.simulator.registerOnPauseCallback(() => {
+      this.comparisonControls.updateVisibility();
+    });
+
     this.simulator.registerOnResetCallback(() => {
       this.comparisonControls.updateVisibility();
     });

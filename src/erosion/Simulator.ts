@@ -11,6 +11,7 @@ export class Simulator {
   private iterationsCompleted: number = 0;
   private updateStart: number = 0;
   private onStartCallbacks: (() => void)[] = [];
+  private onPauseCallbacks: (() => void)[] = [];
   private onCompleteCallbacks: (() => void)[] = [];
   private onResetCallbacks: (() => void)[] = [];
   private state: State = "READY";
@@ -30,6 +31,7 @@ export class Simulator {
 
   pause(): void {
     this.state = "PAUSED";
+    this.onPause();
   }
 
   reset(): void {
@@ -114,22 +116,24 @@ export class Simulator {
     this.onResetCallbacks.push(callback);
   }
 
+  registerOnPauseCallback(callback: () => void): void {
+    this.onPauseCallbacks.push(callback);
+  }
+
   onStart(): void {
-    for (const callback of this.onStartCallbacks) {
-      callback();
-    }
+    for (const callback of this.onStartCallbacks) callback();
+  }
+
+  onPause(): void {
+    for (const callback of this.onPauseCallbacks) callback();
   }
 
   onComplete(): void {
-    this.pause();
-    for (const callback of this.onCompleteCallbacks) {
-      callback();
-    }
+    for (const callback of this.onCompleteCallbacks) callback();
   }
 
   onReset(): void {
-    for (const callback of this.onResetCallbacks) {
-      callback();
-    }
+    for (const callback of this.onResetCallbacks) callback();
   }
+
 }
