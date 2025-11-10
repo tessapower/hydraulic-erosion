@@ -7,7 +7,7 @@ export type State = "READY" | "RUNNING" | "PAUSED" | "COMPLETE";
 
 export class Simulator {
   private static readonly TIME_BUDGET: number = 16;
-  runInBatchMode: boolean = false;
+  private runInBatchMode: boolean = false;
   private workerManager: ErosionWorkerManager;
   private landscape: Landscape;
   private erosionModel: IErosionModel;
