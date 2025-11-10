@@ -59,10 +59,16 @@ export class SimulatorControls implements IGuiModule {
     this.erosionFolder = parentGui.addFolder(this.getModuleName());
 
     // Status display
+    this.erosionFolder.add(this.statusObj, 'status')
+      .name('Status')
+      .listen().disable();
+
+    // Progress display
+    // This will show the current progress of the simulation
     this.erosionFolder.add(this.statusObj, 'progress')
       .name('Progress')
       .listen().disable();
-    
+
     this.updateStatus();
 
     // Create buttons for controlling the simulation
@@ -167,7 +173,11 @@ export class SimulatorControls implements IGuiModule {
     } else if (isRunning) {
       this.statusObj.status = '🟢 Running';
     } else {
-      this.statusObj.status = '⚪ Ready';
+      if (this.simulator.getIterationsCompleted() > 0) {
+        this.statusObj.status = '🟠 Paused';
+      } else {
+        this.statusObj.status = '🟡 Ready';
+      }
     }
 
     const current = this.simulator.getIterationsCompleted();

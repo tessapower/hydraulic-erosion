@@ -32,10 +32,6 @@ export class ShaderControls implements IGuiModule {
       .add(this.material.uniforms.u_steepness, "value", 0.0, 1.0, 0.05)
       .name("Steepness Threshold");
 
-    this.shaderFolder
-      .add(this.material.uniforms.u_lightStrength, "value", 0.0, 3.0, 0.1)
-      .name("Light Strength");
-
     this.shaderFolder.close();
   }
 
