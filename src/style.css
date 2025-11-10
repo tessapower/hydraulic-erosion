@@ -88,7 +88,7 @@ html, body {
     opacity: 0.5 !important;
 }
 
-/* Start button styles */
+/* Batch button styles */
 .erosion-batch-btn:not(:disabled) {
     background-color: #72b4cc !important;
     color: white !important;
