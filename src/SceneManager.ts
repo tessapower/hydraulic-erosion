@@ -196,6 +196,10 @@ export class SceneManager {
       this.comparisonControls.updateVisibility();
       this.landscapeControls.enable(true);
     });
+
+    this.simulator.registerOnCompleteCallback(() => {
+      this.comparisonControls.updateVisibility();
+    });
   }
 
   start(): void {
