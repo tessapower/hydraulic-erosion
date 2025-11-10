@@ -12,6 +12,7 @@ import {Simulator} from "./erosion/Simulator";
 import Stats from "stats.js";
 import type {IErosionModel} from "./erosion/IErosionModel";
 import {ShaderControls} from "./gui/ShaderControls";
+import {ComparisonControls} from "./gui/ComparisonControls";
 
 /**
  * Orchestrates the Three.js scene, including terrain, lighting, camera,
@@ -57,6 +58,8 @@ export class SceneManager {
   private readonly guiManager: GuiManager;
   // Performance monitoring (only in debug mode)
   private stats?: Stats;
+
+  private readonly comparisonControls: ComparisonControls;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -146,6 +149,10 @@ export class SceneManager {
     // Create simulator to manage erosion process
     this.simulator = new Simulator(this.landscape, physicsBased);
 
+    // Create comparison controls (no GUI needed)
+    this.comparisonControls = new ComparisonControls(this.landscape, this.simulator);
+    this.comparisonControls.initialize();
+
     // Directional Light
     const directionalLight = new THREE.DirectionalLight(SceneManager.LIGHT_COLOR, SceneManager.LIGHT_INTENSITY);
     directionalLight.position.set(SceneManager.LIGHT_POSITION.x, SceneManager.LIGHT_POSITION.y, SceneManager.LIGHT_POSITION.z);
@@ -172,6 +179,15 @@ export class SceneManager {
         ])
       )
     );
+
+    // After setting up the simulator controls, add callbacks to show/hide hint
+    this.simulator.registerOnStartCallback(() => {
+      this.comparisonControls.updateVisibility();
+    });
+
+    this.simulator.registerOnResetCallback(() => {
+      this.comparisonControls.updateVisibility();
+    });
   }
 
   start(): void {
@@ -187,6 +203,7 @@ export class SceneManager {
     // Dispose scene objects
     this.landscape.dispose();
     this.guiManager.dispose();
+    this.comparisonControls.dispose();
     this.renderer.dispose();
   }
 
