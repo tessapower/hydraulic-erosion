@@ -5,8 +5,6 @@ export class ErosionWorkerManager {
   private onProgress?: (iteration: number, total: number) => void;
   private onComplete?: (heightMap: Float32Array) => void;
 
-  constructor() {
-  }
 
   /**
    * Start batch erosion in a worker thread
