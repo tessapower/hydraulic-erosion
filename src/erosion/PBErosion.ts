@@ -83,7 +83,6 @@ export class PBErosion implements IErosionModel, IErosionControls {
 
   public readonly params: IErosionParams;
   public readonly usesChangeMap: boolean = false;
-
   private readonly paramsControllers: Array<Controller> = [];
 
   constructor(params: Partial<IErosionParams> = {}) {
@@ -101,11 +100,6 @@ export class PBErosion implements IErosionModel, IErosionControls {
       })
       .name('Seed');
     seed.domElement.title = 'Seed for the random number generator';
-
-    const timeStep = gui.add(this.params, 'dt', 0.1, 3.0, 0.1)
-      .onFinishChange(() => onParameterChange?.())
-      .name('Time Step');
-    timeStep.domElement.title = 'Time Step';
 
     const density = gui.add(this.params, 'density', 0.5, 2.0, 0.1)
       .onFinishChange(() => onParameterChange?.())
@@ -132,7 +126,7 @@ export class PBErosion implements IErosionModel, IErosionControls {
       .name('Friction');
     friction.domElement.title = 'Velocity loss factor per timestep';
 
-    this.paramsControllers.push(seed, timeStep, density, evaporation, deposition, minVolume, friction);
+    this.paramsControllers.push(seed, density, evaporation, deposition, minVolume, friction);
 
     simulator.registerOnStartCallback(() => {
       // Disable adjusting the parameters when the simulation is running

@@ -27,19 +27,19 @@ export class SceneManager {
   private static readonly FOG_NEAR: number = 675;
   private static readonly FOG_FAR: number = 850;
   private static readonly CAMERA_NEAR: number = -800;
-  private static readonly CAMERA_FAR: number = 800;
+  private static readonly CAMERA_FAR: number = 900;
   private static readonly CAMERA_POS: THREE.Vector3 = new THREE.Vector3(400, 400, 400);
   private static readonly CAMERA_TARGET: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
   private static readonly LIGHT_COLOR: THREE.Color = new THREE.Color(1.0, 1.0, 0.9);
   private static readonly LIGHT_POSITION: THREE.Vector3 = new THREE.Vector3(1, 1, 0).normalize().multiplyScalar(100);
   private static readonly LIGHT_INTENSITY: number = 1.3;
-  private static readonly AMBIENT_INTENSITY: number = 0.1;
+  private static readonly AMBIENT_INTENSITY: number = 0.5;
 
   // Camera Constants
   private static readonly FRUSTUM_SIZE: number = SceneManager.TERRAIN_SIZE * 1.2;
   private static readonly ZOOM_MIN: number = 0.2;
   private static readonly ZOOM_MAX: number = 5.0;
-  // Sensitivity: smaller = slower zoom (tweak to taste)
+  // Sensitivity: smaller = slower zoom
   private static readonly ZOOM_SENSITIVITY: number = 0.001;
   private static readonly WHEEL_LINE_HEIGHT: number = 16;
 

@@ -16,7 +16,7 @@ export class LandscapeControls implements IGuiModule {
     seed: {start: 42},
     terrainFrequency: {min: 0, max: 0.015, step: 0.001},
     terrainAmplitude: {min: 10, max: 200, step: 5},
-    baseHeight: {min: -50, max: 50, step: 5},
+    baseHeight: {min: 0, max: 50, step: 5},
     octaves: {min: 1, max: 15, step: 1},
     persistence: {min: 0.1, max: 0.9, step: 0.05},
     lacunarity: {min: 1.5, max: 3.0, step: 0.1},

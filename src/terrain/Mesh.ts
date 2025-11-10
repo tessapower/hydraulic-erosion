@@ -70,6 +70,7 @@ export class Mesh {
     );
     rightWallGeometry.rotateY(Math.PI / 2); // Face outward toward -X (camera side)
     rightWallGeometry.translate(this.size / 2, -this.wallHeight / 2, 0);
+    
     this.rightWallMesh = new THREE.Mesh(rightWallGeometry, wallMaterial);
     this.rightWallMesh.receiveShadow = true;
     this.group.add(this.rightWallMesh);
