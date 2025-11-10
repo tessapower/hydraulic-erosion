@@ -249,10 +249,10 @@ export class SceneManager {
     e.preventDefault();
 
     // Normalize delta (DOM_DELTA_LINE ≈ lines, DOM_DELTA_PIXEL ≈ pixels)
-    const delta = e.deltaMode === 1 ? e.deltaY * SceneManager.WHEEL_LINE_HEIGHT : e.deltaY;
+    const delta: number = e.deltaMode === 1 ? e.deltaY * SceneManager.WHEEL_LINE_HEIGHT : e.deltaY;
 
     // Multiply zoom for smooth exponential feel
-    const nextZoom = this.camera.zoom * (1 - delta * SceneManager.ZOOM_SENSITIVITY);
+    const nextZoom: number = this.camera.zoom * (1 - delta * SceneManager.ZOOM_SENSITIVITY);
     this.camera.zoom = THREE.MathUtils.clamp(nextZoom, SceneManager.ZOOM_MIN, SceneManager.ZOOM_MAX);
     this.camera.updateProjectionMatrix();
   };

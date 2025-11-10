@@ -13,7 +13,7 @@ import type {IErosionControls} from "./IErosionControls";
 export class SimulatorControls implements IGuiModule {
   private static readonly MIN_ITERATIONS = 1000;
   private static readonly MAX_ITERATIONS = 1_000_000;
-  private static readonly ITERATIONS_STEP = 1000;
+  private static readonly ITERATIONS_STEP = 100;
   private readonly simulator: Simulator;
   private erosionFolder: GUI = null!;
   // Folder for model-specific parameters, which will be dynamically
@@ -193,7 +193,7 @@ export class SimulatorControls implements IGuiModule {
   };
 
   private setupModelParams(): void {
-    const model = this.simulator.getErosionModel();
+    const model: IErosionModel = this.simulator.getErosionModel();
 
     // Check if model implements IErosionControls
     if (this.implementsErosionControls(model)) {
