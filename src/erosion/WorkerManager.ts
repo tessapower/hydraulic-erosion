@@ -17,6 +17,9 @@ export class ErosionWorkerManager {
     onProgress?: (iteration: number, total: number) => void,
     onComplete?: (heightMap: Float32Array) => void
   ): void {
+    if (this.worker) {
+      this.cleanup();
+    }
     this.onProgress = onProgress;
     this.onComplete = onComplete;
 
