@@ -2,16 +2,19 @@
 import {Landscape} from "../terrain/Landscape";
 import type {IErosionModel} from "./IErosionModel";
 
+export type State = "READY" | "RUNNING" | "PAUSED" | "COMPLETE";
+
 export class Simulator {
   private static readonly TIME_BUDGET: number = 16;
   private landscape: Landscape;
   private erosionModel: IErosionModel;
-  private isRunning: boolean = false;
   private iterationsCompleted: number = 0;
   private updateStart: number = 0;
   private onStartCallbacks: (() => void)[] = [];
+  private onPauseCallbacks: (() => void)[] = [];
   private onCompleteCallbacks: (() => void)[] = [];
   private onResetCallbacks: (() => void)[] = [];
+  private state: State = "READY";
 
   constructor(landscape: Landscape, erosion: IErosionModel) {
     this.landscape = landscape;
@@ -19,22 +22,27 @@ export class Simulator {
   }
 
   start(): void {
-    this.isRunning = true;
+    // Save the original heightmap before starting erosion
+    if (!this.landscape.hasOriginal()) this.landscape.saveOriginal();
+
+    this.state = "RUNNING";
     this.onStart();
   }
 
   pause(): void {
-    this.isRunning = false;
+    this.state = "PAUSED";
+    this.onPause();
   }
 
   reset(): void {
+    this.state = "READY";
     this.iterationsCompleted = 0;
     this.landscape.regenerate();
     this.onReset();
   }
 
   update(): void {
-    if (!this.isRunning) return;
+    if (this.state !== "RUNNING") return;
 
     const heightMap = this.landscape.getHeightMap();
     // Since this is a square heightmap, width === height
@@ -61,7 +69,10 @@ export class Simulator {
       this.iterationsCompleted++;
     }
 
-    if (this.isComplete()) this.onComplete();
+    if (this.getProgress() === 100) {
+      this.state = "COMPLETE";
+      this.onComplete();
+    }
     this.updateStart = performance.now();
   }
 
@@ -89,12 +100,8 @@ export class Simulator {
     return max > 0 ? (this.iterationsCompleted / max) * 100 : 0;
   }
 
-  isComplete(): boolean {
-    return this.iterationsCompleted >= this.erosionModel.getIterations();
-  }
-
-  getIsRunning(): boolean {
-    return this.isRunning;
+  getState(): State {
+    return this.state;
   }
 
   registerOnStartCallback(callback: () => void): void {
@@ -109,22 +116,24 @@ export class Simulator {
     this.onResetCallbacks.push(callback);
   }
 
+  registerOnPauseCallback(callback: () => void): void {
+    this.onPauseCallbacks.push(callback);
+  }
+
   onStart(): void {
-    for (const callback of this.onStartCallbacks) {
-      callback();
-    }
+    for (const callback of this.onStartCallbacks) callback();
+  }
+
+  onPause(): void {
+    for (const callback of this.onPauseCallbacks) callback();
   }
 
   onComplete(): void {
-    this.pause();
-    for (const callback of this.onCompleteCallbacks) {
-      callback();
-    }
+    for (const callback of this.onCompleteCallbacks) callback();
   }
 
   onReset(): void {
-    for (const callback of this.onResetCallbacks) {
-      callback();
-    }
+    for (const callback of this.onResetCallbacks) callback();
   }
+
 }

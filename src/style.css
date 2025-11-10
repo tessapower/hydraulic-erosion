@@ -25,6 +25,32 @@ html, body {
     display: block; /* remove inline gaps */
 }
 
+/* Comparison hint overlay at bottom of canvas */
+.comparison-hint {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 14px;
+    pointer-events: none;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    display: none; /* Hidden by default until erosion starts */
+    transition: opacity 0.2s ease;
+}
+
+.comparison-hint.active {
+    background-color: rgba(76, 175, 80, 0.8);
+    border-color: rgba(76, 175, 80, 0.4);
+}
+
 /* Styling for GUI buttons */
 .lil-gui button {
     transition: all 0.2s ease;

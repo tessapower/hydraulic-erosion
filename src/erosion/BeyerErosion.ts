@@ -10,7 +10,7 @@ import {type RandomFn} from "../utils/Random";
 import type {IErosionModel} from "./IErosionModel";
 import type {IErosionControls} from "../gui/IErosionControls";
 import GUI, {Controller} from "lil-gui";
-import type {Simulator} from "./Simulator";
+import type {Simulator, State} from "./Simulator";
 
 /**
  * Parameters for Beyer's hydraulic erosion simulation.
@@ -219,8 +219,10 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
     });
 
     simulator.registerOnResetCallback(() => {
+      const state: State = simulator.getState();
+      const canInteract: boolean = state === "READY" || state === "COMPLETE";
       // Re-enable the parameters when the simulation is reset
-      this.paramsControllers.forEach(controller => controller.enable(!simulator.getIsRunning()));
+      this.paramsControllers.forEach(controller => controller.enable(canInteract));
     });
   }
 

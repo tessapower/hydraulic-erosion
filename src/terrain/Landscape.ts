@@ -32,6 +32,7 @@ export class Landscape {
   private readonly size: number;
 
   private heightMap: Float32Array = new Float32Array();
+  private originalHeightMap: Float32Array | null = null;
 
   constructor(
     size: number = Landscape.DEFAULT_SIZE,
@@ -76,12 +77,31 @@ export class Landscape {
     );
   }
 
+  saveOriginal(): void {
+    this.originalHeightMap = new Float32Array(this.heightMap);
+  }
+
+  showOriginal(): void {
+    if (this.originalHeightMap) {
+      this.mesh.updateLandscape(this.originalHeightMap, true);
+    }
+  }
+
+  showCurrent(): void {
+    this.mesh.updateLandscape(this.heightMap, true);
+  }
+
+  hasOriginal(): boolean {
+    return this.originalHeightMap !== null;
+  }
+
   /**
    * Regenerate the landscape with the current settings
    * (uses the same random seed if it was seeded)
    */
   regenerate(): void {
     this.heightMap = this.generator.generateHeightMap();
+    this.originalHeightMap = null; // Clear saved original
     this.updateMesh();
   }
 

@@ -12,6 +12,7 @@ import {Simulator} from "./erosion/Simulator";
 import Stats from "stats.js";
 import type {IErosionModel} from "./erosion/IErosionModel";
 import {ShaderControls} from "./gui/ShaderControls";
+import {ComparisonControls} from "./gui/ComparisonControls";
 
 /**
  * Orchestrates the Three.js scene, including terrain, lighting, camera,
@@ -57,6 +58,9 @@ export class SceneManager {
   private readonly guiManager: GuiManager;
   // Performance monitoring (only in debug mode)
   private stats?: Stats;
+
+  private readonly comparisonControls: ComparisonControls;
+  private readonly landscapeControls: LandscapeControls;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -146,6 +150,10 @@ export class SceneManager {
     // Create simulator to manage erosion process
     this.simulator = new Simulator(this.landscape, physicsBased);
 
+    // Create comparison controls (no GUI needed)
+    this.comparisonControls = new ComparisonControls(this.landscape, this.simulator);
+    this.comparisonControls.initialize();
+
     // Directional Light
     const directionalLight = new THREE.DirectionalLight(SceneManager.LIGHT_COLOR, SceneManager.LIGHT_INTENSITY);
     directionalLight.position.set(SceneManager.LIGHT_POSITION.x, SceneManager.LIGHT_POSITION.y, SceneManager.LIGHT_POSITION.z);
@@ -157,8 +165,9 @@ export class SceneManager {
 
     // Setup GUI
     this.guiManager = new GuiManager();
-    this.guiManager.register("landscape",
-      new LandscapeControls(this.landscape));
+
+    this.landscapeControls = new LandscapeControls(this.landscape);
+    this.guiManager.register("landscape", this.landscapeControls);
 
     this.guiManager.register("shader",
       new ShaderControls(this.landscape.getShader())
@@ -172,6 +181,25 @@ export class SceneManager {
         ])
       )
     );
+
+    // After setting up the simulator controls, add callbacks to show/hide hint
+    this.simulator.registerOnStartCallback(() => {
+      this.comparisonControls.updateVisibility();
+      this.landscapeControls.enable(false);
+    });
+
+    this.simulator.registerOnPauseCallback(() => {
+      this.comparisonControls.updateVisibility();
+    });
+
+    this.simulator.registerOnResetCallback(() => {
+      this.comparisonControls.updateVisibility();
+      this.landscapeControls.enable(true);
+    });
+
+    this.simulator.registerOnCompleteCallback(() => {
+      this.comparisonControls.updateVisibility();
+    });
   }
 
   start(): void {
@@ -187,6 +215,7 @@ export class SceneManager {
     // Dispose scene objects
     this.landscape.dispose();
     this.guiManager.dispose();
+    this.comparisonControls.dispose();
     this.renderer.dispose();
   }
 
@@ -224,10 +253,10 @@ export class SceneManager {
     e.preventDefault();
 
     // Normalize delta (DOM_DELTA_LINE ≈ lines, DOM_DELTA_PIXEL ≈ pixels)
-    const delta = e.deltaMode === 1 ? e.deltaY * SceneManager.WHEEL_LINE_HEIGHT : e.deltaY;
+    const delta: number = e.deltaMode === 1 ? e.deltaY * SceneManager.WHEEL_LINE_HEIGHT : e.deltaY;
 
     // Multiply zoom for smooth exponential feel
-    const nextZoom = this.camera.zoom * (1 - delta * SceneManager.ZOOM_SENSITIVITY);
+    const nextZoom: number = this.camera.zoom * (1 - delta * SceneManager.ZOOM_SENSITIVITY);
     this.camera.zoom = THREE.MathUtils.clamp(nextZoom, SceneManager.ZOOM_MIN, SceneManager.ZOOM_MAX);
     this.camera.updateProjectionMatrix();
   };
