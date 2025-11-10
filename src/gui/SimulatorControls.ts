@@ -110,6 +110,7 @@ export class SimulatorControls implements IGuiModule {
       // Disable adjusting the parameters when the simulation is running
       this.iterationsControl.enable(false);
       this.modelSelector.enable(false);
+      this.updateButtonStates();
     });
 
     // Set up a callback to update button states when the simulation completes
@@ -117,12 +118,14 @@ export class SimulatorControls implements IGuiModule {
       // Enable adjusting the parameters when the simulation is complete
       this.iterationsControl.enable();
       this.modelSelector.enable();
+      this.updateButtonStates();
     });
 
     this.simulator.registerOnResetCallback(() => {
       // Re-enable the parameters when the simulation is reset
       this.iterationsControl.enable();
       this.modelSelector.enable();
+      this.updateButtonStates();
     });
 
     this.setupModelSelector();
