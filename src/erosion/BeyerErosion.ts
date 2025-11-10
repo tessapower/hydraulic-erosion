@@ -331,6 +331,15 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
     this.resetChangeMap();
   }
 
+  toSerializable() {
+    // Extract all parameters except the randomFn (which is not serializable)
+    const {randomFn, ...serializableParams} = this.params;
+    return {
+      modelType: 'beyer',
+      params: serializableParams
+    };
+  }
+
   //========================================== Erosion Simulation Methods ====//
   /**
    * Reset the change map

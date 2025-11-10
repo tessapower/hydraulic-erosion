@@ -191,6 +191,14 @@ export class PBErosion implements IErosionModel, IErosionControls {
     for (let i = 0; i < this.params.iterations; i++) {
       this.simulateDroplet(heightMap, width, height);
     }
+
+  toSerializable() {
+    // Extract all parameters except the randomFn (which is not serializable)
+    const {randomFn, ...serializableParams} = this.params;
+    return {
+      modelType: 'pb',
+      params: serializableParams
+    };
   }
 
   //========================================== Erosion Simulation Methods ====//

@@ -2,6 +2,16 @@
 // can be used by the Simulator to apply erosion to a Landscape.
 
 /**
+ * Serializable configuration for erosion models, used for worker communication.
+ */
+export interface SerializableModelConfig {
+  /** Type identifier for the model ('beyer' | 'pb') */
+  modelType: string;
+  /** Model parameters (plain object, no functions) */
+  params: Record<string, any>;
+}
+
+/**
  * Core interface for erosion models.
  */
 export interface IErosionModel {
@@ -36,5 +46,11 @@ export interface IErosionModel {
    * during simulation.
    */
   applyChanges(heightMap: Float32Array, width: number, height: number): void;
+
+  /**
+   * Serialize model configuration for transfer to worker.
+   * Returns a plain object with no functions that can be sent via postMessage.
+   */
+  toSerializable(): SerializableModelConfig;
 }
 
