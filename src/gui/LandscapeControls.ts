@@ -1,6 +1,6 @@
 // LandscapeControls.ts: GUI controls for landscape generator parameters
 
-import GUI from "lil-gui";
+import GUI, {Controller} from "lil-gui";
 import {Landscape} from "../terrain/Landscape";
 import type {IGuiModule} from "./GuiManager";
 
@@ -118,6 +118,14 @@ export class LandscapeControls implements IGuiModule {
       }).domElement.title = "Frequency multiplier between octaves (higher = more varied detail)";
 
     this.landscapeFolder.close();
+  }
+
+  enable(enabled: boolean): void {
+    for (const control of this.landscapeFolder.children) {
+      if (control instanceof Controller) {
+        control.enable(enabled);
+      }
+    }
   }
 
   getModuleName(): string {

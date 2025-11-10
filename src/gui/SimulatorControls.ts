@@ -121,10 +121,8 @@ export class SimulatorControls implements IGuiModule {
 
     this.simulator.registerOnResetCallback(() => {
       // Re-enable the parameters when the simulation is reset
-      if (!this.simulator.getIsRunning()) {
-        this.iterationsControl.enable();
-        this.modelSelector.enable();
-      }
+      this.iterationsControl.enable();
+      this.modelSelector.enable();
     });
 
     this.setupModelSelector();

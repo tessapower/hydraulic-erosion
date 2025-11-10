@@ -60,6 +60,7 @@ export class SceneManager {
   private stats?: Stats;
 
   private readonly comparisonControls: ComparisonControls;
+  private readonly landscapeControls: LandscapeControls;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -164,8 +165,9 @@ export class SceneManager {
 
     // Setup GUI
     this.guiManager = new GuiManager();
-    this.guiManager.register("landscape",
-      new LandscapeControls(this.landscape));
+
+    this.landscapeControls = new LandscapeControls(this.landscape);
+    this.guiManager.register("landscape", this.landscapeControls);
 
     this.guiManager.register("shader",
       new ShaderControls(this.landscape.getShader())
@@ -183,6 +185,7 @@ export class SceneManager {
     // After setting up the simulator controls, add callbacks to show/hide hint
     this.simulator.registerOnStartCallback(() => {
       this.comparisonControls.updateVisibility();
+      this.landscapeControls.enable(false);
     });
 
     this.simulator.registerOnPauseCallback(() => {
@@ -191,6 +194,7 @@ export class SceneManager {
 
     this.simulator.registerOnResetCallback(() => {
       this.comparisonControls.updateVisibility();
+      this.landscapeControls.enable(true);
     });
   }
 
