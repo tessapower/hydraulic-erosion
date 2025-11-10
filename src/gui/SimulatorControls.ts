@@ -1,7 +1,7 @@
 // ErosionControls.ts: GUI controls for hydraulic erosion parameters
 
 import GUI, {Controller, FunctionController} from "lil-gui";
-import {Simulator} from "../erosion/Simulator";
+import {Simulator, type State} from "../erosion/Simulator";
 import type {IGuiModule} from "./GuiManager";
 import type {IErosionModel} from "../erosion/IErosionModel";
 import type {IErosionControls} from "./IErosionControls";
@@ -165,18 +165,24 @@ export class SimulatorControls implements IGuiModule {
   }
 
   private readonly updateStatus = (): void => {
-    const isRunning = this.simulator.getIsRunning();
-    const isComplete = this.simulator.isComplete();
+    const state: State = this.simulator.getState();
 
-    if (isComplete) {
-      this.statusObj.status = '✅ Complete';
-    } else if (isRunning) {
-      this.statusObj.status = '🟢 Running';
-    } else {
-      if (this.simulator.getIterationsCompleted() > 0) {
-        this.statusObj.status = '🟠 Paused';
-      } else {
-        this.statusObj.status = '🟡 Ready';
+    switch (state) {
+      case "READY": {
+        this.statusObj.status = '⚪ Ready';
+        break;
+      }
+      case "RUNNING": {
+        this.statusObj.status = '🟢 Running';
+        break;
+      }
+      case "COMPLETE": {
+        this.statusObj.status = '✅ Complete';
+        break;
+      }
+      case "PAUSED": {
+        this.statusObj.status = '🟡 Paused';
+        break;
       }
     }
 
@@ -212,25 +218,32 @@ export class SimulatorControls implements IGuiModule {
   }
 
   private updateButtonStates(): void {
-    const isRunning = this.simulator.getIsRunning();
-    const isComplete = this.simulator.isComplete();
+    const state: State = this.simulator.getState();
 
-    if (isComplete) {
-      this.startButton.disable();
-      this.pauseButton.disable();
-      // Only enable reset when complete
-      this.resetButton.enable();
-    } else if (isRunning) {
-      this.startButton.disable();
-      this.pauseButton.enable();
-      this.resetButton.enable();
-    } else {
-      this.startButton.enable();
-      this.pauseButton.disable();
-      if (this.simulator.getIterationsCompleted() === 0) {
+    switch (state) {
+      case "READY": {
+        this.startButton.enable();
+        this.pauseButton.disable();
         this.resetButton.disable();
-      } else {
+        break;
+      }
+      case "PAUSED": {
+        this.startButton.enable();
+        this.pauseButton.disable();
         this.resetButton.enable();
+        break;
+      }
+      case "RUNNING": {
+        this.startButton.disable();
+        this.pauseButton.enable();
+        this.resetButton.enable();
+        break;
+      }
+      case "COMPLETE": {
+        this.startButton.disable();
+        this.pauseButton.disable();
+        this.resetButton.enable();
+        break;
       }
     }
   }
