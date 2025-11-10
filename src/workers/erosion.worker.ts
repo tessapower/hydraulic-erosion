@@ -71,7 +71,7 @@ self.onmessage = (e: MessageEvent<StartErosionMessage>) => {
     // Using Transferable to avoid copying the large array
     const message: CompleteMessage = {
       type: 'complete',
-      heightMap: heightMap,
+      heightMap,
     };
     self.postMessage(message, {transfer: [heightMap.buffer]});
   }
