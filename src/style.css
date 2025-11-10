@@ -51,6 +51,12 @@ html, body {
     border-color: rgba(76, 175, 80, 0.4);
 }
 
+.lil-gui {
+    --number-color: #8ea187;
+    --string-color: #8ea187;
+    --title-background-color: #8ea187;
+}
+
 /* Styling for GUI buttons */
 .lil-gui button {
     transition: all 0.2s ease;
@@ -78,6 +84,18 @@ html, body {
 }
 
 .erosion-start-btn:disabled {
+    background-color: transparent !important;
+    opacity: 0.5 !important;
+}
+
+/* Start button styles */
+.erosion-batch-btn:not(:disabled) {
+    background-color: #72b4cc !important;
+    color: white !important;
+    opacity: 1 !important;
+}
+
+.erosion-batch-btn:disabled {
     background-color: transparent !important;
     opacity: 0.5 !important;
 }
