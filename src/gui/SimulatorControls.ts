@@ -203,11 +203,7 @@ export class SimulatorControls implements IGuiModule {
       this.erosionModelParams = this.erosionFolder.addFolder(model.getControlsFolderName());
 
       // Let the model setup its own controls
-      (model as IErosionControls).setupControls(this.erosionModelParams, this.simulator,
-        () => {
-          // Callback when parameters change
-          this.updateButtonStates();
-        });
+      (model as IErosionControls).setupControls(this.erosionModelParams, this.simulator);
     }
   }
 
