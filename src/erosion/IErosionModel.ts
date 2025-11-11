@@ -8,7 +8,7 @@ export interface SerializableModelConfig {
   /** Type identifier for the model ('beyer' | 'pb') */
   modelType: string;
   /** Model parameters (plain object, no functions) */
-  params: Record<string, any>;
+  params: Record<string, number | string | boolean>;
 }
 
 /**
