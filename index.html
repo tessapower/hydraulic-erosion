@@ -11,6 +11,11 @@
 <body>
 <div id="app">
     <canvas id="three-canvas"></canvas>
+    <div id="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>Running erosion simulation...</p>
+        <p id="loading-progress">0%</p>
+    </div>
 </div>
 <script src="/src/main.ts" type="module"></script>
 </body>

@@ -2,6 +2,16 @@
 // can be used by the Simulator to apply erosion to a Landscape.
 
 /**
+ * Serializable configuration for erosion models, used for worker communication.
+ */
+export interface SerializableModelConfig {
+  /** Type identifier for the model ('beyer' | 'pb') */
+  modelType: string;
+  /** Model parameters (plain object, no functions) */
+  params: Record<string, number | string | boolean>;
+}
+
+/**
  * Core interface for erosion models.
  */
 export interface IErosionModel {
@@ -27,8 +37,9 @@ export interface IErosionModel {
 
   /**
    * Performs the full erosion process on the height map (batch mode).
+   * @param onProgress Optional callback for progress updates (iteration, total)
    */
-  erode(heightMap: Float32Array, width: number, height: number): void;
+  erode(heightMap: Float32Array, width: number, height: number, onProgress?: (iteration: number, total: number) => void): void;
 
   /**
    * Applies accumulated changes to the height map. Requires tracking changes
@@ -36,5 +47,11 @@ export interface IErosionModel {
    * during simulation.
    */
   applyChanges(heightMap: Float32Array, width: number, height: number): void;
+
+  /**
+   * Serialize model configuration for transfer to worker.
+   * Returns a plain object with no functions that can be sent via postMessage.
+   */
+  toSerializable(): SerializableModelConfig;
 }
 

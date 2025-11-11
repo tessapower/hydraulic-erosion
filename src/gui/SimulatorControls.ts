@@ -21,6 +21,7 @@ export class SimulatorControls implements IGuiModule {
   private startButton: Controller = null!;
   private pauseButton: Controller = null!;
   private resetButton: Controller = null!;
+  private batchButton: Controller = null!;
   // References to controls that will be dynamically enabled/disabled
   // based on simulation state
   private iterationsControl: Controller = null!;
@@ -74,6 +75,23 @@ export class SimulatorControls implements IGuiModule {
     // Create buttons for controlling the simulation
     this.startButton = this.erosionFolder.add(this.animationControls, 'start')
       .name('▶ Start Erosion');
+
+    // Only show batch button in debug mode
+    if (import.meta.env.VITE_DEBUG_MODE === "true") {
+      this.batchButton = this.erosionFolder.add(
+        {
+          runBatch: () => {
+            this.simulator.startBatch();
+            this.updateButtonStates();
+          }
+        },
+        'runBatch'
+      ).name('⏩ Run Batch Mode');
+      this.batchButton.domElement.title = "Run the entire erosion process in" +
+        " one go, without animating updates. Can be faster for large" +
+        " simulations but will not show progress until completion.";
+    }
+
     this.pauseButton = this.erosionFolder.add(this.animationControls, 'pause')
       .name('⏸ Pause Erosion');
     this.resetButton = this.erosionFolder.add(this.animationControls, 'reset')
@@ -81,6 +99,9 @@ export class SimulatorControls implements IGuiModule {
 
     // Add CSS classes to buttons
     (this.startButton as FunctionController)?.$button.classList.add('erosion-start-btn');
+    if (this.batchButton) {
+      (this.batchButton as FunctionController)?.$button.classList.add('erosion-batch-btn');
+    }
     (this.pauseButton as FunctionController)?.$button.classList.add('erosion-pause-btn');
 
     // Set initial button states
@@ -108,8 +129,8 @@ export class SimulatorControls implements IGuiModule {
 
     this.simulator.registerOnStartCallback(() => {
       // Disable adjusting the parameters when the simulation is running
-      this.iterationsControl.enable(false);
-      this.modelSelector.enable(false);
+      this.iterationsControl.disable();
+      this.modelSelector.disable();
       this.updateButtonStates();
     });
 
@@ -222,24 +243,28 @@ export class SimulatorControls implements IGuiModule {
         this.startButton.enable();
         this.pauseButton.disable();
         this.resetButton.disable();
+        if (this.batchButton) this.batchButton.enable();
         break;
       }
       case "PAUSED": {
         this.startButton.enable();
         this.pauseButton.disable();
         this.resetButton.enable();
+        if (this.batchButton) this.batchButton.disable();
         break;
       }
       case "RUNNING": {
         this.startButton.disable();
         this.pauseButton.enable();
-        this.resetButton.enable();
+        this.resetButton.disable();
+        if (this.batchButton) this.batchButton.disable();
         break;
       }
       case "COMPLETE": {
         this.startButton.disable();
         this.pauseButton.disable();
         this.resetButton.enable();
+        if (this.batchButton) this.batchButton.enable();
         break;
       }
     }

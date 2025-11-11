@@ -51,6 +51,12 @@ html, body {
     border-color: rgba(76, 175, 80, 0.4);
 }
 
+.lil-gui {
+    --number-color: #8ea187;
+    --string-color: #8ea187;
+    --title-background-color: #8ea187;
+}
+
 /* Styling for GUI buttons */
 .lil-gui button {
     transition: all 0.2s ease;
@@ -82,6 +88,18 @@ html, body {
     opacity: 0.5 !important;
 }
 
+/* Batch button styles */
+.erosion-batch-btn:not(:disabled) {
+    background-color: #72b4cc !important;
+    color: white !important;
+    opacity: 1 !important;
+}
+
+.erosion-batch-btn:disabled {
+    background-color: transparent !important;
+    opacity: 0.5 !important;
+}
+
 /* Pause button styles */
 .erosion-pause-btn:not(:disabled) {
     background-color: #f65145 !important;
@@ -94,7 +112,48 @@ html, body {
     opacity: 0.5 !important;
 }
 
-.lil-gui {
-    --number-color: #8ea187;
-    --string-color: #8ea187;
+/* Loading spinner styles */
+#loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid #fff;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+#loading-overlay p {
+    color: white;
+    margin-top: 20px;
+    font-size: 18px;
+}
+
+#loading-progress {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 10px;
+    font-family: monospace;
 }
