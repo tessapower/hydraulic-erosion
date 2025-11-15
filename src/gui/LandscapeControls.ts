@@ -9,8 +9,18 @@ import type {IGuiModule} from "./GuiManager";
  * parameter adjustment.
  */
 export class LandscapeControls implements IGuiModule {
+  // Default values from HeightGenerator.ts
+  private static readonly DEFAULT_SEED = 42;
+  private static readonly DEFAULT_TERRAIN_FREQUENCY = 0.005;
+  private static readonly DEFAULT_TERRAIN_AMPLITUDE = 60;
+  private static readonly DEFAULT_BASE_HEIGHT = 0;
+  private static readonly DEFAULT_OCTAVES = 15;
+  private static readonly DEFAULT_PERSISTENCE = 0.6;
+  private static readonly DEFAULT_LACUNARITY = 2.0;
+
   private landscape: Landscape;
   private landscapeFolder: GUI = null!;
+  private controllers: Array<Controller> = [];
 
   private readonly controls = {
     seed: {start: 42},
@@ -30,16 +40,17 @@ export class LandscapeControls implements IGuiModule {
     this.landscapeFolder = parentGui.addFolder(this.getModuleName());
 
     const generator = this.landscape.getGenerator();
-    this.landscapeFolder.add(generator, "seed", 0)
+    const seedCtrl = this.landscapeFolder.add(generator, "seed", 0)
       .name("Seed")
       .onFinishChange((value: number) => {
         if (!isNaN(value) && value >= 0) {
           generator.seed = value;
           this.landscape.regenerate();
         }
-      }).domElement.title = "Random seed for terrain generation (integer >= 0)";
+      });
+    seedCtrl.domElement.title = "Random seed for terrain generation (integer >= 0)";
 
-    this.landscapeFolder
+    const freqCtrl = this.landscapeFolder
       .add(
         generator,
         "terrainFrequency",
@@ -50,9 +61,10 @@ export class LandscapeControls implements IGuiModule {
       .name("Terrain Frequency")
       .onFinishChange(() => {
         this.landscape.regenerate();
-      }).domElement.title = "Frequency of base terrain noise (higher = more detailed features)";
+      });
+    freqCtrl.domElement.title = "Frequency of base terrain noise (higher = more detailed features)";
 
-    this.landscapeFolder
+    const ampCtrl = this.landscapeFolder
       .add(
         generator,
         "terrainAmplitude",
@@ -63,9 +75,10 @@ export class LandscapeControls implements IGuiModule {
       .name("Terrain Amplitude")
       .onFinishChange(() => {
         this.landscape.regenerate();
-      }).domElement.title = "Height multiplier for terrain features (higher = taller mountains)";
+      });
+    ampCtrl.domElement.title = "Height multiplier for terrain features (higher = taller mountains)";
 
-    this.landscapeFolder
+    const baseHeightCtrl = this.landscapeFolder
       .add(
         generator,
         "baseHeight",
@@ -76,9 +89,10 @@ export class LandscapeControls implements IGuiModule {
       .name("Base Height")
       .onFinishChange(() => {
         this.landscape.regenerate();
-      }).domElement.title = "Base elevation offset for the entire terrain";
+      });
+    baseHeightCtrl.domElement.title = "Base elevation offset for the entire terrain";
 
-    this.landscapeFolder
+    const octavesCtrl = this.landscapeFolder
       .add(
         generator,
         "octaves",
@@ -89,9 +103,10 @@ export class LandscapeControls implements IGuiModule {
       .name("Octaves")
       .onFinishChange(() => {
         this.landscape.regenerate();
-      }).domElement.title = "Number of noise layers to combine (more = finer detail but slower)";
+      });
+    octavesCtrl.domElement.title = "Number of noise layers to combine (more = finer detail but slower)";
 
-    this.landscapeFolder
+    const persistenceCtrl = this.landscapeFolder
       .add(
         generator,
         "persistence",
@@ -102,9 +117,10 @@ export class LandscapeControls implements IGuiModule {
       .name("Persistence")
       .onFinishChange(() => {
         this.landscape.regenerate();
-      }).domElement.title = "How much each octave contributes (higher = rougher terrain)";
+      });
+    persistenceCtrl.domElement.title = "How much each octave contributes (higher = rougher terrain)";
 
-    this.landscapeFolder
+    const lacunarityCtrl = this.landscapeFolder
       .add(
         generator,
         "lacunarity",
@@ -115,9 +131,35 @@ export class LandscapeControls implements IGuiModule {
       .name("Lacunarity")
       .onFinishChange(() => {
         this.landscape.regenerate();
-      }).domElement.title = "Frequency multiplier between octaves (higher = more varied detail)";
+      });
+    lacunarityCtrl.domElement.title = "Frequency multiplier between octaves (higher = more varied detail)";
+
+    this.controllers.push(seedCtrl, freqCtrl, ampCtrl, baseHeightCtrl, octavesCtrl, persistenceCtrl, lacunarityCtrl);
+
+    // Add reset button
+    this.landscapeFolder.add({reset: () => this.resetParameters()}, "reset")
+      .name("Reset Parameters");
 
     this.landscapeFolder.close();
+  }
+
+  resetParameters(): void {
+    const generator = this.landscape.getGenerator();
+
+    // Reset generator parameters to defaults
+    generator.seed = LandscapeControls.DEFAULT_SEED;
+    generator.terrainFrequency = LandscapeControls.DEFAULT_TERRAIN_FREQUENCY;
+    generator.terrainAmplitude = LandscapeControls.DEFAULT_TERRAIN_AMPLITUDE;
+    generator.baseHeight = LandscapeControls.DEFAULT_BASE_HEIGHT;
+    generator.octaves = LandscapeControls.DEFAULT_OCTAVES;
+    generator.persistence = LandscapeControls.DEFAULT_PERSISTENCE;
+    generator.lacunarity = LandscapeControls.DEFAULT_LACUNARITY;
+
+    // Update the GUI controllers to reflect new values
+    this.controllers.forEach(controller => controller.updateDisplay());
+
+    // Regenerate the landscape with default parameters
+    this.landscape.regenerate();
   }
 
   enable(enabled: boolean): void {
