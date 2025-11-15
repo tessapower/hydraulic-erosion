@@ -1,10 +1,8 @@
 // src/main.ts
 import "./style.css";
-import { SceneManager } from "./SceneManager";
+import {SceneManager} from "./SceneManager";
 
 const canvas: HTMLCanvasElement = document.querySelector<HTMLCanvasElement>('#three-canvas')!;
-const sceneManager = new SceneManager(canvas);
-sceneManager.start();
 
 /* ensure the canvas pixel buffer matches CSS size and devicePixelRatio */
 function resizeCanvasToDisplaySize(canvas: HTMLCanvasElement) {
@@ -19,12 +17,17 @@ function resizeCanvasToDisplaySize(canvas: HTMLCanvasElement) {
   return false;
 }
 
+// Size canvas before creating SceneManager
 resizeCanvasToDisplaySize(canvas);
+
+const sceneManager = new SceneManager(canvas);
+sceneManager.start();
+
+// Trigger initial resize to sync camera and renderer with canvas dimensions
+sceneManager.onResize();
+
 window.addEventListener('resize', () => {
   if (resizeCanvasToDisplaySize(canvas)) {
-    /* if SceneManager exposes a resize handler, call it */
-    if (typeof (sceneManager as any).onResize === 'function') {
-      (sceneManager as any).onResize();
-    }
+    sceneManager.onResize();
   }
 });
