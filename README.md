@@ -5,7 +5,7 @@ WebGL, and TypeScript. This project provides an easy way to compare different
 hydraulic erosion algorithms and their effects on procedurally generated
 terrain.
 
-[View Live Demo!](https://github.com/tessapower/hydraulic-erosion)
+[View Live Demo!](https://tessapower.xyz/hydraulic-erosion)
 
 ![Hydraulic Erosion Demo](./docs/erosion.gif)
 
@@ -19,6 +19,8 @@ terrain.
   animation with Three.js.
 - **Procedural Terrain Generation**: Simplex noise-based terrain with
   customizable parameters.
+- **Mobile Support**: Responsive design with touch controls optimized for mobile
+  devices.
 - **Extensible Architecture**: Easy to add new erosion algorithms through the
   `IErosionModel` interface.
 
@@ -44,7 +46,7 @@ terrain.
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/hydraulic-erosion.git
+git clone https://github.com/tessapower/hydraulic-erosion.git
 cd hydraulic-erosion
 ```
 
@@ -85,6 +87,9 @@ npm run dev
 - **Shader Controls**:
     - Modify terrain colors (flat vs steep areas)
     - Configure steepness threshold for coloring
+- **Comparison Controls**:
+    - Hold right mouse button (or tap and hold on mobile) to toggle between
+      original and eroded terrain
 
 ## Project Structure
 
@@ -95,24 +100,27 @@ hydraulic-erosion/
 │   ├── SceneManager.ts           # Three.js scene orchestration
 │   ├── style.css                 # Global styles
 │   ├── erosion/
-│   │   ├── IErosionModel.ts      # Erosion algorithm interface
 │   │   ├── BeyerErosion.ts       # Beyer's hydraulic erosion implementation
+│   │   ├── IErosionModel.ts      # Erosion algorithm interface
 │   │   ├── PBErosion.ts          # Physics-based erosion implementation
 │   │   └── Simulator.ts          # Erosion simulation coordinator
 │   ├── gui/
+│   │   ├── ComparisonControls.ts # Before/after comparison controls
 │   │   ├── GuiManager.ts         # lil-gui integration
-│   │   ├── ErosionControls.ts    # Erosion parameter controls
+│   │   ├── IErosionControls.ts   # Erosion controls interface
 │   │   ├── LandscapeControls.ts  # Terrain generation controls
-│   │   └── ShaderControls.ts     # Visual/shader controls
+│   │   ├── ShaderControls.ts     # Visual/shader controls
+│   │   └── SimulatorControls.ts  # Simulation control panel
 │   ├── shaders/
-│   │   ├── terrain.vs.glsl       # Vertex shader
-│   │   └── terrain.fs.glsl       # Fragment shader
+│   │   ├── terrain.fs.glsl       # Fragment shader
+│   │   └── terrain.vs.glsl       # Vertex shader
 │   ├── terrain/
+│   │   ├── HeightGenerator.ts    # Procedural terrain generation
 │   │   ├── Landscape.ts          # Terrain mesh and heightmap management
-│   │   ├── LandscapeGenerator.ts # Procedural terrain generation
-│   │   ├── LandscapeShader.ts    # Shader material configuration
-│   │   └── Plane.ts              # Plane geometry utilities
+│   │   └── Mesh.ts               # Mesh geometry utilities
 │   └── utils/
+│       ├── ColorUtils.ts         # Color manipulation utilities
+│       ├── MobileDetector.ts     # Mobile device detection
 │       └── Random.ts             # Random number generation utilities
 ├── index.html                    # HTML entry point
 ├── package.json                  # Dependencies and scripts
@@ -197,11 +205,11 @@ npm run preview
 - [ ] Export/import heightmap functionality
 - [ ] Multithreaded simulation using Web Workers
 - [ ] Water flow visualization
-- [ ] Comparison view (before/after or side-by-side algorithms)
+- [x] Comparison view (before/after or side-by-side algorithms)
 
 ## Contributing
 
-Contributions are welcome! If you'd like to add a new erosion algorithm or
+Contributions are welcome! Whether you want to add new erosion algorithms or
 improve existing features:
 
 1. Fork the repository
@@ -224,7 +232,7 @@ details.
 
 ## Contact
 
-For questions or suggestions, please open an issue on GitHub.
+For questions or suggestions, please open an issue.
 
 ---
 
