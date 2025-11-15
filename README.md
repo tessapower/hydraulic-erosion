@@ -83,13 +83,13 @@ npm run dev
     - Select erosion algorithm.
     - Adjust algorithm-specific parameters.
     - Run erosion simulation step-by-step or in batch mode.
-    - Reset terrain to original state
+    - Reset terrain to original state.
 - **Shader Controls**:
-    - Modify terrain colors (flat vs steep areas)
-    - Configure steepness threshold for coloring
+    - Modify terrain colors (flat vs steep areas).
+    - Configure steepness threshold for coloring.
 - **Comparison Controls**:
     - Hold right mouse button (or tap and hold on mobile) to toggle between
-      original and eroded terrain
+      original and eroded terrain.
 
 ## Project Structure
 
