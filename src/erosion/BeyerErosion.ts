@@ -226,6 +226,16 @@ export class BeyerErosion implements IErosionModel, IErosionControls {
     });
   }
 
+  resetParameters(): void {
+    // Reset params object to defaults while preserving current randomFn implementation
+    const randomFn = this.params.randomFn;
+    Object.assign(this.params, BeyerErosion.DEFAULT_PARAMS);
+    this.params.randomFn = randomFn;
+
+    // Update the GUI controllers to reflect new values
+    this.paramsControllers.forEach(controller => controller.updateDisplay());
+  }
+
   getControlsFolderName(): string {
     return "Parameter Settings";
   }

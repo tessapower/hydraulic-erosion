@@ -22,4 +22,10 @@ export interface IErosionControls extends IGuiModule {
    * Get the folder name for these controls
    */
   getControlsFolderName(): string;
+
+  /**
+   * Reset GUI-exposed parameters back to their default values.
+   * Implementations should also update any bound lil-gui controllers.
+   */
+  resetParameters?(): void;
 }
