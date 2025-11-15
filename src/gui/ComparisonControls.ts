@@ -17,6 +17,7 @@ export class ComparisonControls {
   private touchEndListener: ((e: TouchEvent) => void) | null = null;
   private touchCancelListener: ((e: TouchEvent) => void) | null = null;
   private longPressTimer: number | null = null;
+  private initialTouchCount: number = 0;
 
   constructor(landscape: Landscape, simulator: Simulator, canvas: HTMLCanvasElement) {
     this.landscape = landscape;
@@ -119,7 +120,20 @@ export class ComparisonControls {
 
   private setupTouchControls(): void {
     this.touchStartListener = (e: TouchEvent) => {
+      // Cancel long-press if user adds a second finger (pinch gesture)
+      if (this.initialTouchCount === 1 && e.touches.length > 1) {
+        if (this.longPressTimer !== null) {
+          window.clearTimeout(this.longPressTimer);
+          this.longPressTimer = null;
+        }
+        this.initialTouchCount = e.touches.length;
+        return;
+      }
+
+      // Only start long-press timer on single-finger touch
       if (e.touches.length === 1 && !this.isShowingOriginal && this.landscape.hasOriginal()) {
+        this.initialTouchCount = 1;
+
         // Start long press timer
         this.longPressTimer = window.setTimeout(() => {
           this.isShowingOriginal = true;
@@ -131,10 +145,15 @@ export class ComparisonControls {
             navigator.vibrate(50);
           }
         }, ComparisonControls.LONG_PRESS_DURATION);
+      } else {
+        this.initialTouchCount = e.touches.length;
       }
     };
 
     this.touchEndListener = () => {
+      // Reset touch count
+      this.initialTouchCount = 0;
+
       // Clear the long press timer
       if (this.longPressTimer !== null) {
         window.clearTimeout(this.longPressTimer);
@@ -150,6 +169,9 @@ export class ComparisonControls {
     };
 
     this.touchCancelListener = () => {
+      // Reset touch count
+      this.initialTouchCount = 0;
+
       // Clear the long press timer
       if (this.longPressTimer !== null) {
         window.clearTimeout(this.longPressTimer);
