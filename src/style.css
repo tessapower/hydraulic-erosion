@@ -1,28 +1,43 @@
+* {
+    box-sizing: border-box;
+}
+
 html, body {
+    width: 100%;
     height: 100%;
     margin: 0;
+    padding: 0;
     overflow: hidden; /* remove scrollbars and prevent scrolling */
     -webkit-touch-callout: none;
     -ms-touch-action: none;
     touch-action: none; /* prevent touch scrolling */
+    position: relative;
 }
 
 #app {
-    max-width: 1280px;
-    margin: 0 auto;
-    text-align: center;
-    width: 100vw;
-    height: 100vh;
-    padding: 0; /* remove page padding so canvas can fill */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
 }
 
 /* make the canvas fill the viewport and stay fixed */
 #three-canvas {
     position: fixed;
-    inset: 0; /* top:0; right:0; bottom:0; left:0; */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     width: 100%;
     height: 100%;
     display: block; /* remove inline gaps */
+    margin: 0;
+    padding: 0;
 }
 
 /* Comparison hint overlay at bottom of canvas */
@@ -98,3 +113,76 @@ html, body {
     --number-color: #8ea187;
     --string-color: #8ea187;
 }
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+    /* Make GUI controls larger for easier touch interaction */
+    .lil-gui {
+        --widget-height: 28px;
+        font-size: 13px;
+        max-width: 90vw;
+    }
+
+    .lil-gui input {
+        font-size: 13px;
+        min-height: 28px;
+    }
+
+    .lil-gui button {
+        min-height: 32px;
+        font-size: 13px;
+    }
+
+    /* Make the GUI title bar more prominent for easy toggling */
+    .lil-gui.root > .title {
+        min-height: 40px;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    /* Ensure comparison hint doesn't overlap with controls */
+    .comparison-hint {
+        bottom: 10px;
+        padding: 8px 16px;
+        font-size: 12px;
+        max-width: 80vw;
+        text-align: center;
+    }
+
+    /* Make folders more touch-friendly */
+    .lil-gui .folder > .title {
+        min-height: 32px;
+    }
+}
+
+/* Touch-optimized styles for devices with touch support */
+@media (hover: none) and (pointer: coarse) {
+    /* Increase touch target sizes */
+    .lil-gui .controller {
+        padding: 4px 0;
+    }
+
+    /* Add visual feedback for touch interactions */
+    .lil-gui button:active:not(:disabled) {
+        transform: scale(0.95);
+    }
+
+    .lil-gui input:focus {
+        outline: 2px solid rgba(76, 175, 80, 0.5);
+    }
+}
+
+/* Landscape mobile orientation */
+@media (max-width: 896px) and (orientation: landscape) {
+    .lil-gui {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .comparison-hint {
+        font-size: 11px;
+        padding: 6px 12px;
+        bottom: 5px;
+    }
+}
+

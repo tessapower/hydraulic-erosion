@@ -13,6 +13,7 @@ import Stats from "stats.js";
 import type {IErosionModel} from "./erosion/IErosionModel";
 import {ShaderControls} from "./gui/ShaderControls";
 import {ComparisonControls} from "./gui/ComparisonControls";
+import {MobileDetector} from "./utils/MobileDetector";
 
 /**
  * Orchestrates the Three.js scene, including terrain, lighting, camera,
@@ -44,9 +45,6 @@ export class SceneManager {
   private static readonly ZOOM_SENSITIVITY: number = 0.001;
   private static readonly WHEEL_LINE_HEIGHT: number = 16;
 
-  // Renderer constants
-  private static readonly MAX_PIXEL_RATIO: number = 2;
-
   // Scene components
   private readonly canvas: HTMLCanvasElement;
   private readonly camera: THREE.OrthographicCamera;
@@ -61,6 +59,10 @@ export class SceneManager {
 
   private readonly comparisonControls: ComparisonControls;
   private readonly landscapeControls: LandscapeControls;
+
+  // Touch zoom support
+  private touchStartDistance: number = 0;
+  private touchStartZoom: number = 1;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -83,7 +85,8 @@ export class SceneManager {
       this.stats.showPanel(1); // 0: fps, 1: ms, 2: mb
     }
 
-    const aspect = window.innerWidth / window.innerHeight;
+    // Use canvas client dimensions for accurate aspect ratio
+    const aspect = this.canvas.clientWidth / this.canvas.clientHeight;
 
     const halfH = SceneManager.FRUSTUM_SIZE / 2;
     const halfW = halfH * aspect;
@@ -112,9 +115,10 @@ export class SceneManager {
       antialias: true,
     });
 
-    // Set up renderer
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, SceneManager.MAX_PIXEL_RATIO));
+    // Set up renderer to match canvas dimensions
+    // Use false for updateStyle to prevent renderer from modifying canvas CSS
+    this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight, false);
+    this.renderer.setPixelRatio(MobileDetector.getRecommendedPixelRatio());
 
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -128,6 +132,13 @@ export class SceneManager {
 
     // Handle zooming in and out with mouse wheel
     this.canvas.addEventListener("wheel", this.onWheel, {passive: false});
+
+    // Handle touch zoom for mobile devices
+    if (MobileDetector.hasTouch()) {
+      this.canvas.addEventListener("touchstart", this.onTouchStart, {passive: true});
+      this.canvas.addEventListener("touchmove", this.onTouchMove, {passive: false});
+      this.canvas.addEventListener("touchend", this.onTouchEnd, {passive: true});
+    }
 
     // Create landscape generator
     const generator = new HeightGenerator(
@@ -147,11 +158,12 @@ export class SceneManager {
     const beyer = new BeyerErosion();
     const physicsBased: PBErosion = new PBErosion();
 
-    // Create simulator to manage erosion process
-    this.simulator = new Simulator(this.landscape, physicsBased);
+    // Create simulator to manage erosion process with mobile-optimized time budget
+    const timeBudget = MobileDetector.getTimeBudget();
+    this.simulator = new Simulator(this.landscape, physicsBased, timeBudget);
 
-    // Create comparison controls (no GUI needed)
-    this.comparisonControls = new ComparisonControls(this.landscape, this.simulator);
+    // Create comparison controls (pass canvas to avoid capturing touches on GUI)
+    this.comparisonControls = new ComparisonControls(this.landscape, this.simulator, this.canvas);
     this.comparisonControls.initialize();
 
     // Directional Light
@@ -206,11 +218,21 @@ export class SceneManager {
     this.animate();
   }
 
+  onResize(): void {
+    this.handleResize();
+  }
+
   dispose(): void {
     if (this.animationId !== null) cancelAnimationFrame(this.animationId);
 
     window.removeEventListener("resize", this.handleResize);
-    window.removeEventListener("wheel", this.onWheel);
+    this.canvas.removeEventListener("wheel", this.onWheel);
+
+    if (MobileDetector.hasTouch()) {
+      this.canvas.removeEventListener("touchstart", this.onTouchStart);
+      this.canvas.removeEventListener("touchmove", this.onTouchMove);
+      this.canvas.removeEventListener("touchend", this.onTouchEnd);
+    }
 
     // Dispose scene objects
     this.landscape.dispose();
@@ -233,7 +255,8 @@ export class SceneManager {
   };
 
   private handleResize = (): void => {
-    const aspect = window.innerWidth / window.innerHeight;
+    // Use canvas client dimensions for accurate aspect ratio
+    const aspect = this.canvas.clientWidth / this.canvas.clientHeight;
 
     const halfH = SceneManager.FRUSTUM_SIZE / 2;
     const halfW = halfH * aspect;
@@ -244,7 +267,8 @@ export class SceneManager {
     this.camera.bottom = -halfH;
     this.camera.updateProjectionMatrix();
 
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    // Use false for updateStyle to prevent renderer from modifying canvas CSS
+    this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight, false);
   };
 
   // Normalize wheel delta across browsers and zoom the active camera
@@ -260,4 +284,41 @@ export class SceneManager {
     this.camera.zoom = THREE.MathUtils.clamp(nextZoom, SceneManager.ZOOM_MIN, SceneManager.ZOOM_MAX);
     this.camera.updateProjectionMatrix();
   };
+
+  // Calculate distance between two touch points
+  private getTouchDistance(touches: TouchList): number {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  // Handle touch start for pinch-to-zoom
+  private onTouchStart = (e: TouchEvent): void => {
+    if (e.touches.length === 2) {
+      this.touchStartDistance = this.getTouchDistance(e.touches);
+      this.touchStartZoom = this.camera.zoom;
+    }
+  };
+
+  // Handle touch move for pinch-to-zoom
+  private onTouchMove = (e: TouchEvent): void => {
+    if (e.touches.length === 2) {
+      e.preventDefault(); // Prevent page zoom
+
+      const currentDistance = this.getTouchDistance(e.touches);
+      const scale = currentDistance / this.touchStartDistance;
+
+      const nextZoom = this.touchStartZoom * scale;
+      this.camera.zoom = THREE.MathUtils.clamp(nextZoom, SceneManager.ZOOM_MIN, SceneManager.ZOOM_MAX);
+      this.camera.updateProjectionMatrix();
+    }
+  };
+
+  // Handle touch end
+  private onTouchEnd = (e: TouchEvent): void => {
+    if (e.touches.length < 2) {
+      this.touchStartDistance = 0;
+    }
+  };
 }
+

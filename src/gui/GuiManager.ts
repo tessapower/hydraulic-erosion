@@ -2,6 +2,7 @@
 // the IGuiModule interface can register with.
 
 import GUI from "lil-gui";
+import {MobileDetector} from "../utils/MobileDetector";
 
 /**
  * Interface that GUI modules must implement to register with GUIManager
@@ -27,7 +28,22 @@ export class GuiManager {
   private modules: Map<string, IGuiModule> = new Map();
 
   constructor() {
-    this.gui = new GUI();
+    // Detect mobile before creating GUI
+    const isMobile = MobileDetector.isMobile();
+
+    // Create GUI with title and initial closed state for mobile
+    this.gui = new GUI({
+      title: 'Controls',
+      closeFolders: isMobile
+    });
+
+    // Auto-collapse GUI on mobile devices to save screen space
+    if (isMobile) {
+      this.gui.close();
+
+      // Add mobile-friendly class for custom styling
+      this.gui.domElement.classList.add('mobile-gui');
+    }
   }
 
   /**

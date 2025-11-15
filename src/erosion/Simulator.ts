@@ -5,7 +5,8 @@ import type {IErosionModel} from "./IErosionModel";
 export type State = "READY" | "RUNNING" | "PAUSED" | "COMPLETE";
 
 export class Simulator {
-  private static readonly TIME_BUDGET: number = 16;
+  private static readonly DEFAULT_TIME_BUDGET: number = 16;
+  private timeBudget: number = Simulator.DEFAULT_TIME_BUDGET;
   private landscape: Landscape;
   private erosionModel: IErosionModel;
   private iterationsCompleted: number = 0;
@@ -16,9 +17,20 @@ export class Simulator {
   private onResetCallbacks: (() => void)[] = [];
   private state: State = "READY";
 
-  constructor(landscape: Landscape, erosion: IErosionModel) {
+  constructor(landscape: Landscape, erosion: IErosionModel, timeBudget?: number) {
     this.landscape = landscape;
     this.erosionModel = erosion;
+    if (timeBudget !== undefined) {
+      this.timeBudget = timeBudget;
+    }
+  }
+
+  setTimeBudget(budget: number): void {
+    this.timeBudget = budget;
+  }
+
+  getTimeBudget(): number {
+    return this.timeBudget;
   }
 
   start(): void {
@@ -63,7 +75,7 @@ export class Simulator {
     // Run erosion until we hit the time budget or complete the required
     // iterations. Ensure we always run at least one iteration to avoid
     // stalling on the first update.
-    const timeAllowance: number = Math.max(1, Simulator.TIME_BUDGET - (updateEnd - this.updateStart));
+    const timeAllowance: number = Math.max(1, this.timeBudget - (updateEnd - this.updateStart));
     while (this.iterationsCompleted < maxIterations && (performance.now() - updateEnd) < timeAllowance) {
       this.erosionModel.simulateStep(heightMap, size, size);
       this.iterationsCompleted++;
