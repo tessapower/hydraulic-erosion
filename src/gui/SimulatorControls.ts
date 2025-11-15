@@ -21,6 +21,7 @@ export class SimulatorControls implements IGuiModule {
   private startButton: Controller = null!;
   private pauseButton: Controller = null!;
   private resetButton: Controller = null!;
+  private resetParamsButton: Controller = null!;
   // References to controls that will be dynamically enabled/disabled
   // based on simulation state
   private iterationsControl: Controller = null!;
@@ -40,6 +41,18 @@ export class SimulatorControls implements IGuiModule {
       this.updateButtonStates();
     },
     reset: () => {
+      this.simulator.reset();
+      this.updateButtonStates();
+    },
+    resetParams: () => {
+      const model = this.simulator.getErosionModel();
+      if (this.implementsErosionControls(model)) {
+        (model as IErosionControls).resetParameters?.();
+      }
+      // Also reset the iterations control back to the model default
+      const defaultIterations = this.simulator.getErosionModel().getIterations();
+      (this.iterationsControl as any).setValue(defaultIterations);
+      this.simulator.pause();
       this.simulator.reset();
       this.updateButtonStates();
     },
@@ -73,11 +86,13 @@ export class SimulatorControls implements IGuiModule {
 
     // Create buttons for controlling the simulation
     this.startButton = this.erosionFolder.add(this.animationControls, 'start')
-      .name('▶ Start Erosion');
+      .name('\u25b6 Start Erosion');
     this.pauseButton = this.erosionFolder.add(this.animationControls, 'pause')
-      .name('⏸ Pause Erosion');
+      .name('\u23f8 Pause Erosion');
     this.resetButton = this.erosionFolder.add(this.animationControls, 'reset')
-      .name('🔄 Reset');
+      .name('\ud83d\udd04 Reset');
+    this.resetParamsButton = this.erosionFolder.add(this.animationControls, 'resetParams')
+      .name('Reset Parameters');
 
     // Add CSS classes to buttons
     (this.startButton as FunctionController)?.$button.classList.add('erosion-start-btn');
@@ -202,8 +217,16 @@ export class SimulatorControls implements IGuiModule {
     if (this.implementsErosionControls(model)) {
       this.erosionModelParams = this.erosionFolder.addFolder(model.getControlsFolderName());
 
-      // Let the model setup its own controls
-      (model as IErosionControls).setupControls(this.erosionModelParams, this.simulator);
+      // Let the model setup its own controls and pass a callback that
+      // re-syncs the iterations slider when model parameters change
+      (model as IErosionControls).setupControls(
+        this.erosionModelParams,
+        this.simulator,
+        () => {
+          const iters = this.simulator.getErosionModel().getIterations();
+          (this.iterationsControl as any).setValue(iters);
+        },
+      );
     }
   }
 
@@ -222,24 +245,28 @@ export class SimulatorControls implements IGuiModule {
         this.startButton.enable();
         this.pauseButton.disable();
         this.resetButton.disable();
+        this.resetParamsButton.enable();
         break;
       }
       case "PAUSED": {
         this.startButton.enable();
         this.pauseButton.disable();
         this.resetButton.enable();
+        this.resetParamsButton.disable();
         break;
       }
       case "RUNNING": {
         this.startButton.disable();
         this.pauseButton.enable();
         this.resetButton.enable();
+        this.resetParamsButton.disable();
         break;
       }
       case "COMPLETE": {
         this.startButton.disable();
         this.pauseButton.disable();
         this.resetButton.enable();
+        this.resetParamsButton.enable();
         break;
       }
     }
