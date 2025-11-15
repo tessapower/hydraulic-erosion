@@ -3,6 +3,7 @@
 import * as THREE from "three";
 import HeightGenerator from "./HeightGenerator";
 import {Mesh} from "./Mesh";
+import {ColorUtils} from "../utils/ColorUtils";
 import vertShader from "../shaders/terrain.vs.glsl?raw";
 import fragShader from "../shaders/terrain.fs.glsl?raw";
 
@@ -58,8 +59,8 @@ export class Landscape {
     normalTexture.wrapS = normalTexture.wrapT = THREE.RepeatWrapping;
     normalTexture.repeat.set(Landscape.TEXTURE_REPEAT, Landscape.TEXTURE_REPEAT);
 
-    // Calculate wall color as a blend of flat and steep colors, darkened for shadow effect
-    const wallColor = this.calculateWallColor(Landscape.STEEP_COLOR, Landscape.FLAT_COLOR);
+    // Calculate wall color using shared ColorUtils
+    const wallColor = ColorUtils.calculateWallColor(Landscape.STEEP_COLOR, Landscape.FLAT_COLOR);
 
     this.wallMaterial = new THREE.MeshStandardMaterial({
       color: wallColor,
@@ -157,24 +158,6 @@ export class Landscape {
     this.mesh.dispose();
     this.shader.dispose();
     this.wallMaterial.dispose();
-  }
-
-  /**
-   * Calculate a wall color by blending flat and steep colors, then darkening
-   * The wall color is a blend (70% steep, 30% flat) that's darkened by 30%
-   */
-  private calculateWallColor(steepColor: THREE.Color, flatColor: THREE.Color): THREE.Color {
-    // Blend: 70% steep, 30% flat
-    const blended = new THREE.Color(
-      steepColor.r * 0.7 + flatColor.r * 0.3,
-      steepColor.g * 0.7 + flatColor.g * 0.3,
-      steepColor.b * 0.7 + flatColor.b * 0.3
-    );
-
-    // Darken by 30% (multiply by 0.70) since walls are typically in shadow
-    blended.multiplyScalar(0.70);
-
-    return blended;
   }
 
   private createLandscapeShader(): THREE.ShaderMaterial {
