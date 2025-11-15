@@ -150,46 +150,31 @@ export class ComparisonControls {
       }
     };
 
-    this.touchEndListener = () => {
-      // Reset touch count
-      this.initialTouchCount = 0;
+    this.touchEndListener = () => this.handleTouchEnd();
 
-      // Clear the long press timer
-      if (this.longPressTimer !== null) {
-        window.clearTimeout(this.longPressTimer);
-        this.longPressTimer = null;
-      }
-
-      // If we were showing original, hide it
-      if (this.isShowingOriginal) {
-        this.isShowingOriginal = false;
-        this.landscape.showCurrent();
-        this.overlayElement?.classList.remove('active');
-      }
-    };
-
-    this.touchCancelListener = () => {
-      // Reset touch count
-      this.initialTouchCount = 0;
-
-      // Clear the long press timer
-      if (this.longPressTimer !== null) {
-        window.clearTimeout(this.longPressTimer);
-        this.longPressTimer = null;
-      }
-
-      // If we were showing original, hide it
-      if (this.isShowingOriginal) {
-        this.isShowingOriginal = false;
-        this.landscape.showCurrent();
-        this.overlayElement?.classList.remove('active');
-      }
-    };
+    this.touchCancelListener = () => this.handleTouchEnd();
 
     // Attach to canvas element to avoid capturing touches on GUI elements
     this.canvas.addEventListener('touchstart', this.touchStartListener, {passive: true});
     this.canvas.addEventListener('touchend', this.touchEndListener, {passive: true});
     this.canvas.addEventListener('touchcancel', this.touchCancelListener, {passive: true});
   }
-}
 
+  private handleTouchEnd(): void {
+    // Reset touch count
+    this.initialTouchCount = 0;
+
+    // Clear the long press timer
+    if (this.longPressTimer !== null) {
+      window.clearTimeout(this.longPressTimer);
+      this.longPressTimer = null;
+    }
+
+    // If we were showing original, hide it
+    if (this.isShowingOriginal) {
+      this.isShowingOriginal = false;
+      this.landscape.showCurrent();
+      this.overlayElement?.classList.remove('active');
+    }
+  }
+}
