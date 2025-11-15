@@ -7,6 +7,7 @@ export class ComparisonControls {
   private static readonly LONG_PRESS_DURATION: number = 500; // ms
   private landscape: Landscape;
   private simulator: Simulator;
+  private canvas: HTMLCanvasElement;
   private isShowingOriginal: boolean = false;
   private overlayElement: HTMLElement | null = null;
   private mouseDownListener: ((e: MouseEvent) => void) | null = null;
@@ -17,9 +18,10 @@ export class ComparisonControls {
   private touchCancelListener: ((e: TouchEvent) => void) | null = null;
   private longPressTimer: number | null = null;
 
-  constructor(landscape: Landscape, simulator: Simulator) {
+  constructor(landscape: Landscape, simulator: Simulator, canvas: HTMLCanvasElement) {
     this.landscape = landscape;
     this.simulator = simulator;
+    this.canvas = canvas;
   }
 
   initialize(): void {
@@ -44,22 +46,22 @@ export class ComparisonControls {
       window.clearTimeout(this.longPressTimer);
     }
     if (this.mouseDownListener) {
-      window.removeEventListener('mousedown', this.mouseDownListener);
+      this.canvas.removeEventListener('mousedown', this.mouseDownListener);
     }
     if (this.mouseUpListener) {
-      window.removeEventListener('mouseup', this.mouseUpListener);
+      this.canvas.removeEventListener('mouseup', this.mouseUpListener);
     }
     if (this.contextMenuListener) {
-      window.removeEventListener('contextmenu', this.contextMenuListener);
+      this.canvas.removeEventListener('contextmenu', this.contextMenuListener);
     }
     if (this.touchStartListener) {
-      window.removeEventListener('touchstart', this.touchStartListener);
+      this.canvas.removeEventListener('touchstart', this.touchStartListener);
     }
     if (this.touchEndListener) {
-      window.removeEventListener('touchend', this.touchEndListener);
+      this.canvas.removeEventListener('touchend', this.touchEndListener);
     }
     if (this.touchCancelListener) {
-      window.removeEventListener('touchcancel', this.touchCancelListener);
+      this.canvas.removeEventListener('touchcancel', this.touchCancelListener);
     }
     if (this.overlayElement && this.overlayElement.parentNode) {
       this.overlayElement.parentNode.removeChild(this.overlayElement);
@@ -109,9 +111,10 @@ export class ComparisonControls {
       }
     };
 
-    window.addEventListener('mousedown', this.mouseDownListener);
-    window.addEventListener('mouseup', this.mouseUpListener);
-    window.addEventListener('contextmenu', this.contextMenuListener);
+    // Attach to canvas element to avoid capturing mouse events on GUI elements
+    this.canvas.addEventListener('mousedown', this.mouseDownListener);
+    this.canvas.addEventListener('mouseup', this.mouseUpListener);
+    this.canvas.addEventListener('contextmenu', this.contextMenuListener);
   }
 
   private setupTouchControls(): void {
@@ -161,8 +164,10 @@ export class ComparisonControls {
       }
     };
 
-    window.addEventListener('touchstart', this.touchStartListener, {passive: true});
-    window.addEventListener('touchend', this.touchEndListener, {passive: true});
-    window.addEventListener('touchcancel', this.touchCancelListener, {passive: true});
+    // Attach to canvas element to avoid capturing touches on GUI elements
+    this.canvas.addEventListener('touchstart', this.touchStartListener, {passive: true});
+    this.canvas.addEventListener('touchend', this.touchEndListener, {passive: true});
+    this.canvas.addEventListener('touchcancel', this.touchCancelListener, {passive: true});
   }
 }
+

@@ -162,8 +162,8 @@ export class SceneManager {
     const timeBudget = MobileDetector.getTimeBudget();
     this.simulator = new Simulator(this.landscape, physicsBased, timeBudget);
 
-    // Create comparison controls (no GUI needed)
-    this.comparisonControls = new ComparisonControls(this.landscape, this.simulator);
+    // Create comparison controls (pass canvas to avoid capturing touches on GUI)
+    this.comparisonControls = new ComparisonControls(this.landscape, this.simulator, this.canvas);
     this.comparisonControls.initialize();
 
     // Directional Light
