@@ -158,7 +158,6 @@ export class PBErosion implements IErosionModel, IErosionControls {
     this.paramsControllers.forEach(controller => controller.updateDisplay());
   }
 
-
   getControlsFolderName(): string {
     return "Parameter Settings";
   }
