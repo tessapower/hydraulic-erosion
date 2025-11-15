@@ -3,6 +3,7 @@
 import * as THREE from "three";
 import HeightGenerator from "./HeightGenerator";
 import {Mesh} from "./Mesh";
+import {ColorUtils} from "../utils/ColorUtils";
 import vertShader from "../shaders/terrain.vs.glsl?raw";
 import fragShader from "../shaders/terrain.fs.glsl?raw";
 
@@ -14,7 +15,6 @@ export class Landscape {
   private static readonly DEFAULT_RESOLUTION: number = 512;
   private static readonly FLAT_COLOR: THREE.Color = new THREE.Color(0x8ea187);
   private static readonly STEEP_COLOR: THREE.Color = new THREE.Color(0xb5b3b0);
-  private static readonly WALL_COLOR: THREE.Color = new THREE.Color(0x787B6D);
   private static readonly WALL_HEIGHT_SCALE: number = 0.1;
   private static readonly TEXTURE_REPEAT: number = 2;
   private static readonly TEXTURE_NORMAl_SCALE: THREE.Vector2 = new THREE.Vector2(3, 3);
@@ -27,6 +27,7 @@ export class Landscape {
 
   private readonly mesh: Mesh;
   private readonly shader: THREE.ShaderMaterial;
+  private readonly wallMaterial: THREE.MeshStandardMaterial;
   private readonly generator: HeightGenerator;
   private readonly segments: number;
   private readonly size: number;
@@ -58,8 +59,11 @@ export class Landscape {
     normalTexture.wrapS = normalTexture.wrapT = THREE.RepeatWrapping;
     normalTexture.repeat.set(Landscape.TEXTURE_REPEAT, Landscape.TEXTURE_REPEAT);
 
-    const wallMaterial = new THREE.MeshStandardMaterial({
-      color: Landscape.WALL_COLOR,
+    // Calculate wall color using shared ColorUtils
+    const wallColor = ColorUtils.calculateWallColor(Landscape.STEEP_COLOR, Landscape.FLAT_COLOR);
+
+    this.wallMaterial = new THREE.MeshStandardMaterial({
+      color: wallColor,
       normalMap: normalTexture,
       normalScale: Landscape.TEXTURE_NORMAl_SCALE,
       metalness: Landscape.TEXTURE_METALNESS,
@@ -73,7 +77,7 @@ export class Landscape {
       this.size * Landscape.WALL_HEIGHT_SCALE,
       this.heightMap,
       this.shader,
-      wallMaterial
+      this.wallMaterial
     );
   }
 
@@ -120,6 +124,13 @@ export class Landscape {
   }
 
   /**
+   * Gets the wall material for updating its color
+   */
+  getWallMaterial(): THREE.MeshStandardMaterial {
+    return this.wallMaterial;
+  }
+
+  /**
    * Gets the generator for accessing landscape generation parameters
    */
   getGenerator(): HeightGenerator {
@@ -146,8 +157,8 @@ export class Landscape {
   dispose(): void {
     this.mesh.dispose();
     this.shader.dispose();
+    this.wallMaterial.dispose();
   }
-
 
   private createLandscapeShader(): THREE.ShaderMaterial {
     return new THREE.ShaderMaterial({
@@ -171,3 +182,4 @@ export class Landscape {
     });
   }
 }
+
