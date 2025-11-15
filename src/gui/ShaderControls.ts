@@ -11,6 +11,7 @@ export class ShaderControls implements IGuiModule {
   private static readonly DEFAULT_STEEPNESS = 0.6;
 
   private material: THREE.ShaderMaterial;
+  private wallMaterial: THREE.MeshStandardMaterial | null = null;
   private shaderFolder: GUI = null!;
   private controllers: Array<Controller> = [];
   private colorControllers: { flatColor: number; steepColor: number } = {
@@ -18,8 +19,9 @@ export class ShaderControls implements IGuiModule {
     steepColor: ShaderControls.DEFAULT_STEEP_COLOR,
   };
 
-  constructor(material: THREE.ShaderMaterial) {
+  constructor(material: THREE.ShaderMaterial, wallMaterial?: THREE.MeshStandardMaterial) {
     this.material = material;
+    this.wallMaterial = wallMaterial || null;
   }
 
   registerParent(parentGui: GUI): void {
@@ -33,10 +35,12 @@ export class ShaderControls implements IGuiModule {
 
     const flatColorCtrl = this.shaderFolder.addColor(this.colorControllers, "flatColor").onChange((value: number) => {
       this.material.uniforms.u_flatColor.value.setHex(value);
+      this.updateWallColor();
     }).name("Flat Color");
 
     const steepColorCtrl = this.shaderFolder.addColor(this.colorControllers, "steepColor").onChange((value: number) => {
       this.material.uniforms.u_steepColor.value.setHex(value);
+      this.updateWallColor();
     }).name("Steep Color");
 
     const steepnessCtrl = this.shaderFolder
@@ -62,6 +66,9 @@ export class ShaderControls implements IGuiModule {
     this.colorControllers.flatColor = ShaderControls.DEFAULT_FLAT_COLOR;
     this.colorControllers.steepColor = ShaderControls.DEFAULT_STEEP_COLOR;
 
+    // Update wall color based on reset colors
+    this.updateWallColor();
+
     // Update the GUI controllers to reflect new values
     this.controllers.forEach(controller => controller.updateDisplay());
   }
@@ -69,4 +76,39 @@ export class ShaderControls implements IGuiModule {
   getModuleName(): string {
     return "Rendering";
   }
+
+  /**
+   * Calculate a wall color by blending flat and steep colors, then darkening
+   * The wall color is a blend (70% steep, 30% flat) that's darkened by 30%
+   */
+  private calculateWallColor(steepColor: number, flatColor: number): THREE.Color {
+    const steep = new THREE.Color(steepColor);
+    const flat = new THREE.Color(flatColor);
+
+    // Blend: 70% steep, 30% flat
+    const blended = new THREE.Color(
+      steep.r * 0.7 + flat.r * 0.3,
+      steep.g * 0.7 + flat.g * 0.3,
+      steep.b * 0.7 + flat.b * 0.3
+    );
+
+    // Darken by 30% (multiply by 0.70) since walls are typically in shadow
+    blended.multiplyScalar(0.70);
+
+    return blended;
+  }
+
+  /**
+   * Update the wall material color based on current steep and flat colors
+   */
+  private updateWallColor(): void {
+    if (this.wallMaterial) {
+      const wallColor = this.calculateWallColor(
+        this.colorControllers.steepColor,
+        this.colorControllers.flatColor
+      );
+      this.wallMaterial.color.copy(wallColor);
+    }
+  }
 }
+

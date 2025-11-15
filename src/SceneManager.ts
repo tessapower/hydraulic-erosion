@@ -182,7 +182,7 @@ export class SceneManager {
     this.guiManager.register("landscape", this.landscapeControls);
 
     this.guiManager.register("shader",
-      new ShaderControls(this.landscape.getShader())
+      new ShaderControls(this.landscape.getShader(), this.landscape.getWallMaterial())
     );
 
     this.guiManager.register("erosion",

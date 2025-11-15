@@ -14,7 +14,6 @@ export class Landscape {
   private static readonly DEFAULT_RESOLUTION: number = 512;
   private static readonly FLAT_COLOR: THREE.Color = new THREE.Color(0x8ea187);
   private static readonly STEEP_COLOR: THREE.Color = new THREE.Color(0xb5b3b0);
-  private static readonly WALL_COLOR: THREE.Color = new THREE.Color(0x787B6D);
   private static readonly WALL_HEIGHT_SCALE: number = 0.1;
   private static readonly TEXTURE_REPEAT: number = 2;
   private static readonly TEXTURE_NORMAl_SCALE: THREE.Vector2 = new THREE.Vector2(3, 3);
@@ -27,6 +26,7 @@ export class Landscape {
 
   private readonly mesh: Mesh;
   private readonly shader: THREE.ShaderMaterial;
+  private readonly wallMaterial: THREE.MeshStandardMaterial;
   private readonly generator: HeightGenerator;
   private readonly segments: number;
   private readonly size: number;
@@ -58,8 +58,11 @@ export class Landscape {
     normalTexture.wrapS = normalTexture.wrapT = THREE.RepeatWrapping;
     normalTexture.repeat.set(Landscape.TEXTURE_REPEAT, Landscape.TEXTURE_REPEAT);
 
-    const wallMaterial = new THREE.MeshStandardMaterial({
-      color: Landscape.WALL_COLOR,
+    // Calculate wall color as a blend of flat and steep colors, darkened for shadow effect
+    const wallColor = this.calculateWallColor(Landscape.STEEP_COLOR, Landscape.FLAT_COLOR);
+
+    this.wallMaterial = new THREE.MeshStandardMaterial({
+      color: wallColor,
       normalMap: normalTexture,
       normalScale: Landscape.TEXTURE_NORMAl_SCALE,
       metalness: Landscape.TEXTURE_METALNESS,
@@ -73,7 +76,7 @@ export class Landscape {
       this.size * Landscape.WALL_HEIGHT_SCALE,
       this.heightMap,
       this.shader,
-      wallMaterial
+      this.wallMaterial
     );
   }
 
@@ -120,6 +123,13 @@ export class Landscape {
   }
 
   /**
+   * Gets the wall material for updating its color
+   */
+  getWallMaterial(): THREE.MeshStandardMaterial {
+    return this.wallMaterial;
+  }
+
+  /**
    * Gets the generator for accessing landscape generation parameters
    */
   getGenerator(): HeightGenerator {
@@ -146,8 +156,26 @@ export class Landscape {
   dispose(): void {
     this.mesh.dispose();
     this.shader.dispose();
+    this.wallMaterial.dispose();
   }
 
+  /**
+   * Calculate a wall color by blending flat and steep colors, then darkening
+   * The wall color is a blend (70% steep, 30% flat) that's darkened by 30%
+   */
+  private calculateWallColor(steepColor: THREE.Color, flatColor: THREE.Color): THREE.Color {
+    // Blend: 70% steep, 30% flat
+    const blended = new THREE.Color(
+      steepColor.r * 0.7 + flatColor.r * 0.3,
+      steepColor.g * 0.7 + flatColor.g * 0.3,
+      steepColor.b * 0.7 + flatColor.b * 0.3
+    );
+
+    // Darken by 30% (multiply by 0.70) since walls are typically in shadow
+    blended.multiplyScalar(0.70);
+
+    return blended;
+  }
 
   private createLandscapeShader(): THREE.ShaderMaterial {
     return new THREE.ShaderMaterial({
@@ -171,3 +199,4 @@ export class Landscape {
     });
   }
 }
+
