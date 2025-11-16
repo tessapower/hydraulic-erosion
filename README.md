@@ -142,6 +142,8 @@ The project is designed to be extensible. To add a new erosion algorithm:
 import type {IErosionModel} from "./IErosionModel";
 
 export class MyErosion implements IErosionModel {
+  readonly usesChangeMap: boolean = false; // Set to true if your algorithm uses a change map
+
   getName(): string {
     return "My Custom Erosion";
   }
@@ -158,6 +160,10 @@ export class MyErosion implements IErosionModel {
     this.iterations = n;
   }
 
+  setSeed(seed: number): void {
+    // Set the random seed for reproducible results
+  }
+
   simulateStep(heightMap: Float32Array, width: number, height: number): void {
     // Implement one simulation step
   }
@@ -167,19 +173,30 @@ export class MyErosion implements IErosionModel {
   }
 
   applyChanges(heightMap: Float32Array, width: number, height: number): void {
-    // Apply accumulated changes if needed
+    // Apply accumulated changes if your algorithm uses a change map
   }
 }
 ```
 
-2. **Register the algorithm** in `SceneManager.ts`:
+2. **Register the algorithm** in `SceneManager.ts` by creating an instance and
+   adding it to the Map passed to `SimulatorControls`:
 
 ```typescript
 import {MyErosion} from "./erosion/MyErosion";
 
-// In SceneManager constructor or initialization:
+// In SceneManager constructor, after creating other erosion models:
 const myErosion = new MyErosion(/* parameters */);
-this.erosionModels.push(myErosion);
+
+// Add to the Map in the SimulatorControls registration:
+this.guiManager.register("erosion",
+  new SimulatorControls(this.simulator,
+    new Map<string, IErosionModel>([
+      ["Physics Based", physicsBased],
+      ["Beyer", beyer],
+      ["My Custom Erosion", myErosion], // Add your model here
+    ])
+  )
+);
 ```
 
 3. **Add GUI controls** if your algorithm has custom parameters (see
