@@ -7,14 +7,14 @@ terrain.
 
 [View Live Demo!](https://tessapower.xyz/hydraulic-erosion)
 
-![Hydraulic Erosion Demo](./docs/erosion.gif)
+![Hydraulic Erosion Demo](./docs/erosion-simulation.gif)
 
 ## Features
 
 - **Multiple Erosion Algorithms**: Compare different approaches to hydraulic
   erosion simulation.
-- **Interactive Controls**: Fine-tune erosion parameters and terrain generation
-  in real-time via GUI.
+- **Interactive Controls**: Fine-tune erosion parameters, shader colors, and
+  terrain generation in real-time via GUI.
 - **Real-time 3D Visualization**: Interactive camera controls and smooth
   animation with Three.js.
 - **Procedural Terrain Generation**: Simplex noise-based terrain with
@@ -23,6 +23,8 @@ terrain.
   devices.
 - **Extensible Architecture**: Easy to add new erosion algorithms through the
   `IErosionModel` interface.
+
+![Hydraulic Erosion Demo](./docs/before-after-compilation.gif)
 
 ## Tech Stack
 
