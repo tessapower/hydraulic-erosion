@@ -1,4 +1,7 @@
-// Simulator.ts
+// Simulator.ts: orchestrates the erosion simulation, managing the current state
+// of the simulation and the landscape. Also handles timing and progress
+// tracking, as well as callbacks for when the simulation starts, pauses,
+// completes, or resets.
 import {Landscape} from "../terrain/Landscape";
 import type {IErosionModel} from "./IErosionModel";
 
